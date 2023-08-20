@@ -8,6 +8,8 @@ import (
 type IUserRepo interface {
 	Save(user models.User) (models.User, error)
 	FindByEmail(email string) (models.User, error)
+	FindByID(id int) (models.User, error)
+	Update(user models.User) (models.User, error)
 }
 
 type UserRepo struct {
@@ -32,6 +34,26 @@ func (repo *UserRepo) FindByEmail(email string) (models.User, error) {
 	err := repo.DB.Where("email = ?", email).Find(&user).Error
 	if err != nil {
 		return models.User{}, err
+	}
+
+	return user, nil
+}
+
+func (repo *UserRepo) FindByID(id int) (models.User, error) {
+	var user models.User
+	err := repo.DB.Where("id = ?", id).Find(&user).Error
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (repo *UserRepo) Update(user models.User) (models.User, error) {
+	err := repo.DB.Save(&user).Error
+	if err != nil {
+		return user, err
 	}
 
 	return user, nil

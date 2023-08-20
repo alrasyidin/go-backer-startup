@@ -44,12 +44,13 @@ func main() {
 
 	userRepo := repository.NewUserRepo(db)
 	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(*userService)
+	userHandler := handler.NewUserHandler(userService)
 	v1 := app.Group("/api/v1")
 	{
 		v1.POST("/users/register", userHandler.Register)
 		v1.POST("/users/session", userHandler.Login)
 		v1.POST("/users/email-check", userHandler.CheckEmailAvailability)
+		v1.POST("/users/avatar", userHandler.UploadAvatar)
 	}
 
 	const PORT = ":8000"

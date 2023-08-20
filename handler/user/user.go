@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
 	"github.com/alrasyidin/bwa-backer-startup/service"
@@ -12,10 +13,10 @@ import (
 )
 
 type UserHandler struct {
-	service service.UserService
+	service service.IUserService
 }
 
-func NewUserHandler(userService service.UserService) *UserHandler {
+func NewUserHandler(userService service.IUserService) *UserHandler {
 	return &UserHandler{userService}
 }
 
@@ -94,4 +95,28 @@ func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
 	}
 	helper.SuccessResponse(c, "Email available", data)
 
+}
+
+func (handler *UserHandler) UploadAvatar(c *gin.Context) {
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		helper.BadRequestResponse(c, "Failed to upload image", gin.H{"is_uploaded": false}, nil)
+		return
+	}
+	userID := 1
+	path := fmt.Sprintf("images/%d-%s", userID, file.Filename)
+	err = c.SaveUploadedFile(file, path)
+
+	if err != nil {
+		helper.BadRequestResponse(c, "Failed to upload image", gin.H{"is_uploaded": false}, nil)
+		return
+	}
+
+	_, err = handler.service.UploadAvatar(userID, path)
+	if err != nil {
+		helper.BadRequestResponse(c, "Failed to upload image", gin.H{"is_uploaded": false}, nil)
+		return
+	}
+
+	helper.SuccessResponse(c, "Avatar successfully uploaded", gin.H{"is_uploaded": true})
 }

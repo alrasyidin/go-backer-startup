@@ -8,11 +8,14 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/handler/user/dto"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type IUserService interface {
 	Register(input dto.RegisterUserRequest) (models.User, error)
-	Login(input dto.RegisterUserRequest) (models.User, error)
+	Login(input dto.LoginUserRequest) (models.User, error)
+	IsEmailAvailable(email string) (bool, error)
+	UploadAvatar(ID int, fileLocation string) (models.User, error)
 }
 
 type UserService struct {
@@ -95,4 +98,24 @@ func (service *UserService) IsEmailAvailable(email string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (service *UserService) UploadAvatar(ID int, fileLocation string) (models.User, error) {
+	user, err := service.repo.FindByID(ID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return user, ErrUserNotFound
+		}
+
+		return user, err
+	}
+
+	user.AvatarFileName = fileLocation
+
+	user, err = service.repo.Update(user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
