@@ -1,13 +1,20 @@
 package tokenization
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var (
+	ErrInvalidToken = errors.New("Token is invalid")
+	ErrExpiredToken = errors.New("Token is expired")
+)
+
 type Generator interface {
 	GenerateToken(userID int, expire time.Duration) (string, error)
+	ValidateToken(encodedToken string) (*jwt.Token, error)
 }
 
 type JWTGenerator struct {
@@ -31,4 +38,31 @@ func (g *JWTGenerator) GenerateToken(userID int, expire time.Duration) (string, 
 	}
 
 	return jwtToken, nil
+}
+
+func (g *JWTGenerator) ValidateToken(encodedToken string) (*jwt.Token, error) {
+	token, err := jwt.Parse(encodedToken, func(t *jwt.Token) (interface{}, error) {
+
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+
+		if !ok {
+			return nil, ErrInvalidToken
+		}
+
+		return []byte(g.SecretKey), nil
+	})
+
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrExpiredToken
+		}
+		return nil, ErrInvalidToken
+	}
+
+	_, ok := token.Claims.(*CustomClaim)
+	if !ok {
+		return nil, ErrInvalidToken
+	}
+
+	return token, nil
 }
