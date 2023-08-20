@@ -22,7 +22,12 @@ func FormatValidationError(errors validator.ValidationErrors) gin.H {
 	for _, v := range errors {
 		field := strings.ToLower(v.Field())
 		tag := v.Tag()
-		errorMessages[field] = MsgForTag(tag)
+
+		if MsgForTag(tag) != "" {
+			errorMessages[field] = MsgForTag(tag)
+		} else {
+			errorMessages[field] = v.Error()
+		}
 	}
 
 	errorMessages = gin.H{

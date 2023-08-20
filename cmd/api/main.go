@@ -49,6 +49,7 @@ func main() {
 	{
 		v1.POST("/users/register", userHandler.Register)
 		v1.POST("/users/session", userHandler.Login)
+		v1.POST("/users/email-check", userHandler.CheckEmailAvailability)
 	}
 
 	const PORT = ":8000"

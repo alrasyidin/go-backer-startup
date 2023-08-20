@@ -43,6 +43,7 @@ func (handler *UserHandler) Register(c *gin.Context) {
 
 	helper.SuccessResponse(c, "Account successfully register", response)
 }
+
 func (handler *UserHandler) Login(c *gin.Context) {
 	var input dto.LoginUserRequest
 
@@ -66,4 +67,31 @@ func (handler *UserHandler) Login(c *gin.Context) {
 	response := dto.FormatUser(user, "tokentokentokentokentokentoken")
 
 	helper.SuccessResponse(c, "Login success", response)
+}
+
+func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
+	var input dto.EmailCheckRequest
+
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			helper.FailedValidationResponse(c, "Check email failed", ve)
+			return
+		}
+		helper.BadRequestResponse(c, "Check email failed", nil)
+		return
+	}
+
+	isEmailAvailable, err := handler.service.IsEmailAvailable(input)
+
+	data := gin.H{
+		"is_available": isEmailAvailable,
+	}
+	if err != nil {
+		helper.BadRequestResponse(c, err.Error(), data)
+		return
+	}
+	helper.SuccessResponse(c, "Email available", data)
+
 }

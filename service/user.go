@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/user/dto"
@@ -19,8 +20,9 @@ type UserService struct {
 }
 
 var (
-	ErrUserNotFound    = errors.New("User not found")
-	ErrInvalidPassword = errors.New("password is invalid")
+	ErrUserNotFound      = errors.New("User not found")
+	ErrInvalidPassword   = errors.New("password is invalid")
+	ErrEmailAlreadyTaken = errors.New("email has been registered")
 )
 
 // Constructor for UserService
@@ -68,4 +70,18 @@ func (service *UserService) Login(input dto.LoginUserRequest) (models.User, erro
 	}
 
 	return user, nil
+}
+
+func (service *UserService) IsEmailAvailable(input dto.EmailCheckRequest) (bool, error) {
+	user, err := service.repo.FindByEmail(input.Email)
+	fmt.Printf("user: %+v", user)
+	if err != nil {
+		return false, err
+	}
+
+	if user.ID != 0 {
+		return false, ErrEmailAlreadyTaken
+	}
+
+	return true, nil
 }
