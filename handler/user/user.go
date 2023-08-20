@@ -29,13 +29,13 @@ func (handler *UserHandler) Register(c *gin.Context) {
 			helper.FailedValidationResponse(c, "Register account failed, please check your input", ve)
 			return
 		}
-		helper.BadRequestResponse(c, "Register account failed", nil)
+		helper.BadRequestResponse(c, "Register account failed", nil, nil)
 		return
 	}
 	user, err := handler.service.Register(input)
 
 	if err != nil {
-		helper.BadRequestResponse(c, "Register account failed", nil)
+		helper.BadRequestResponse(c, "Register account failed", nil, err.Error())
 		return
 	}
 
@@ -54,13 +54,13 @@ func (handler *UserHandler) Login(c *gin.Context) {
 			helper.FailedValidationResponse(c, "Login failed", ve)
 			return
 		}
-		helper.BadRequestResponse(c, "Login failed", nil)
+		helper.BadRequestResponse(c, "Login failed", nil, nil)
 		return
 	}
 	user, err := handler.service.Login(input)
 
 	if err != nil {
-		helper.BadRequestResponse(c, "Login failed", nil)
+		helper.BadRequestResponse(c, "Login failed", nil, nil)
 		return
 	}
 
@@ -79,17 +79,17 @@ func (handler *UserHandler) CheckEmailAvailability(c *gin.Context) {
 			helper.FailedValidationResponse(c, "Check email failed", ve)
 			return
 		}
-		helper.BadRequestResponse(c, "Check email failed", nil)
+		helper.BadRequestResponse(c, "Check email failed", nil, nil)
 		return
 	}
 
-	isEmailAvailable, err := handler.service.IsEmailAvailable(input)
+	isEmailAvailable, err := handler.service.IsEmailAvailable(input.Email)
 
 	data := gin.H{
 		"is_available": isEmailAvailable,
 	}
 	if err != nil {
-		helper.BadRequestResponse(c, err.Error(), data)
+		helper.BadRequestResponse(c, err.Error(), data, nil)
 		return
 	}
 	helper.SuccessResponse(c, "Email available", data)

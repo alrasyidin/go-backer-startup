@@ -33,12 +33,23 @@ func NewUserService(repo repository.IUserRepo) *UserService {
 }
 
 func (service *UserService) Register(input dto.RegisterUserRequest) (models.User, error) {
+	var user models.User
+
+	isEmailAvailable, err := service.IsEmailAvailable(input.Email)
+	if err != nil {
+		return user, err
+	}
+
+	if !isEmailAvailable {
+		return user, ErrEmailAlreadyTaken
+	}
+
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return models.User{}, err
 	}
 
-	user := models.User{
+	user = models.User{
 		Name:         input.Name,
 		Occupation:   input.Occupation,
 		Email:        input.Email,
@@ -72,8 +83,8 @@ func (service *UserService) Login(input dto.LoginUserRequest) (models.User, erro
 	return user, nil
 }
 
-func (service *UserService) IsEmailAvailable(input dto.EmailCheckRequest) (bool, error) {
-	user, err := service.repo.FindByEmail(input.Email)
+func (service *UserService) IsEmailAvailable(email string) (bool, error) {
+	user, err := service.repo.FindByEmail(email)
 	fmt.Printf("user: %+v", user)
 	if err != nil {
 		return false, err

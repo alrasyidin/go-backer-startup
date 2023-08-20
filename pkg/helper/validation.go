@@ -30,9 +30,5 @@ func FormatValidationError(errors validator.ValidationErrors) gin.H {
 		}
 	}
 
-	errorMessages = gin.H{
-		"errors": errorMessages,
-	}
-
 	return errorMessages
 }
