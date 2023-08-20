@@ -5,6 +5,7 @@ import (
 	"time"
 
 	handler "github.com/alrasyidin/bwa-backer-startup/handler/user"
+	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	ginzerolog "github.com/dn365/gin-zerolog"
@@ -42,9 +43,12 @@ func main() {
 	sqlDB.SetMaxOpenConns(50)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
+	tokenGenerator := tokenization.NewJWTGenerator("initokeninitokeninitokeninitoken")
+
 	userRepo := repository.NewUserRepo(db)
 	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, tokenGenerator)
+
 	v1 := app.Group("/api/v1")
 	{
 		v1.POST("/users/register", userHandler.Register)

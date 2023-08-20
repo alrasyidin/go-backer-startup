@@ -3,8 +3,10 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
+	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -13,11 +15,12 @@ import (
 )
 
 type UserHandler struct {
-	service service.IUserService
+	service        service.IUserService
+	tokenGenerator tokenization.Generator
 }
 
-func NewUserHandler(userService service.IUserService) *UserHandler {
-	return &UserHandler{userService}
+func NewUserHandler(userService service.IUserService, tokenGenerator tokenization.Generator) *UserHandler {
+	return &UserHandler{userService, tokenGenerator}
 }
 
 func (handler *UserHandler) Register(c *gin.Context) {
@@ -40,7 +43,12 @@ func (handler *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	response := dto.FormatUser(user, "tokentokentokentokentokentoken")
+	token, err := handler.tokenGenerator.GenerateToken(user.ID, time.Hour)
+	if err != nil {
+		helper.BadRequestResponse(c, "Register account failed", nil, err.Error())
+		return
+	}
+	response := dto.FormatUser(user, token)
 
 	helper.SuccessResponse(c, "Account successfully register", response)
 }
@@ -64,8 +72,12 @@ func (handler *UserHandler) Login(c *gin.Context) {
 		helper.BadRequestResponse(c, "Login failed", nil, nil)
 		return
 	}
-
-	response := dto.FormatUser(user, "tokentokentokentokentokentoken")
+	token, err := handler.tokenGenerator.GenerateToken(user.ID, time.Hour)
+	if err != nil {
+		helper.BadRequestResponse(c, "Register account failed", nil, err.Error())
+		return
+	}
+	response := dto.FormatUser(user, token)
 
 	helper.SuccessResponse(c, "Login success", response)
 }
