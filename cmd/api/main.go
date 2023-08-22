@@ -26,6 +26,7 @@ func main() {
 
 	app.SetTrustedProxies(nil)
 	app.Use(middleware.HTTPLoggerMiddleware("BWA Backer"))
+	app.Use(gin.Recovery())
 
 	dsn := "host=localhost user=root password=postgres dbname=bwabackerdb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
 	db, err := gorm.Open(postgres.New(postgres.Config{
