@@ -4,7 +4,8 @@ import (
 	"os"
 	"time"
 
-	handler "github.com/alrasyidin/bwa-backer-startup/handler/user"
+	campaignHandle "github.com/alrasyidin/bwa-backer-startup/handler/campaign"
+	userHandle "github.com/alrasyidin/bwa-backer-startup/handler/user"
 	"github.com/alrasyidin/bwa-backer-startup/middleware"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
@@ -52,7 +53,11 @@ func main() {
 
 	userRepo := repository.NewUserRepo(db)
 	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService, tokenGenerator)
+	userHandler := userHandle.NewUserHandler(userService, tokenGenerator)
+
+	campaignRepo := repository.NewCampaignRepo(db)
+	campaignService := service.NewCampaignService(campaignRepo)
+	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
 	v1 := app.Group("/api/v1")
 	{
@@ -60,6 +65,9 @@ func main() {
 		v1.POST("/users/session", userHandler.Login)
 		v1.POST("/users/email-check", userHandler.CheckEmailAvailability)
 		v1.POST("/users/avatar", middleware.AuthMiddlware(userService, tokenGenerator), userHandler.UploadAvatar)
+
+		// campaigns
+		v1.GET("/campaigns", campaignHandler.GetCampaigns)
 	}
 
 	const PORT = ":8000"
