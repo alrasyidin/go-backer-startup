@@ -13,6 +13,7 @@ type CampaginResponse struct {
 	Description      string `json:"description"`
 	GoalAmount       int    `json:"goal_amount"`
 	CurrentAmount    int    `json:"current_amount"`
+	Slug             string `json:"slug"`
 	ImageURL         string `json:"image_url"`
 }
 
@@ -25,6 +26,7 @@ func FormatCampaignResponse(campaign models.Campaign) CampaginResponse {
 		Description:      campaign.Description,
 		GoalAmount:       campaign.GoalAmount,
 		CurrentAmount:    campaign.CurrentAmount,
+		Slug:             campaign.Slug,
 		ImageURL:         "",
 	}
 
@@ -36,7 +38,8 @@ func FormatCampaignResponse(campaign models.Campaign) CampaginResponse {
 }
 
 func FormatListCampaignResponse(campaigns []models.Campaign) []CampaginResponse {
-	var listCampaginResponse []CampaginResponse
+	listCampaginResponse := []CampaginResponse{}
+
 	for _, campaign := range campaigns {
 		listCampaginResponse = append(listCampaginResponse, FormatCampaignResponse(campaign))
 	}

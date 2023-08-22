@@ -59,6 +59,8 @@ func main() {
 	campaignService := service.NewCampaignService(campaignRepo)
 	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
+	app.Static("/images", "./images")
+
 	v1 := app.Group("/api/v1")
 	{
 		v1.POST("/users/register", userHandler.Register)
@@ -68,6 +70,9 @@ func main() {
 
 		// campaigns
 		v1.GET("/campaigns", campaignHandler.GetCampaigns)
+
+		// static assets avatar
+
 	}
 
 	const PORT = ":8000"
