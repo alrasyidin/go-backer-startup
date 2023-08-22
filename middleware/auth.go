@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
@@ -25,7 +24,6 @@ func AuthMiddlware(userService service.IUserService, token tokenization.Generato
 		}
 
 		fields := strings.Fields(header)
-		fmt.Println("fields", fields)
 		if len(fields) < 2 {
 			helper.AbortResponse(c, "invalid format token", nil)
 			return

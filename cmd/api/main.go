@@ -1,6 +1,7 @@
 package main
 
 import (
+	defaultLog "log"
 	"os"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func main() {
@@ -30,10 +32,23 @@ func main() {
 	app.Use(gin.Recovery())
 
 	dsn := "host=localhost user=root password=postgres dbname=bwabackerdb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+	dbLogger := logger.New(
+		defaultLog.New(os.Stdout, "\r\n", defaultLog.LstdFlags),
+		logger.Config{
+			SlowThreshold:             time.Second, // Slow SQL threshold
+			LogLevel:                  logger.Info, // Log level
+			IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
+			ParameterizedQueries:      true,        // Don't include params in the SQL log
+			Colorful:                  true,        // Disable color
+		},
+	)
+
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  dsn,
 		PreferSimpleProtocol: true,
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		Logger: dbLogger,
+	})
 
 	if err != nil {
 		log.Fatal().Msgf("failed connect to db: %v", err)
@@ -72,6 +87,7 @@ func main() {
 		// campaigns
 		v1.GET("/campaigns", campaignHandler.GetCampaigns)
 		v1.GET("/campaigns/:id", campaignHandler.GetCampaign)
+		v1.POST("/campaigns", middleware.AuthMiddlware(userService, tokenGenerator), campaignHandler.CreateCampaign)
 
 	}
 

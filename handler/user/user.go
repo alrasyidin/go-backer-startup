@@ -118,7 +118,6 @@ func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 	currentUser := c.MustGet(middleware.AuthorizationUserKey).(models.User)
-	fmt.Println("currentUser", currentUser)
 	userID := currentUser.ID
 	path := fmt.Sprintf("images/%d-%s", userID, file.Filename)
 	err = c.SaveUploadedFile(file, path)

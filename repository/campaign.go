@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
@@ -51,7 +50,6 @@ func (repo *CampaignRepo) FindByID(ID int) (models.Campaign, error) {
 	var campaign models.Campaign
 
 	err := repo.DB.Where("id = ?", ID).Preload("User").Preload("CampaignImages").First(&campaign).Error
-	fmt.Println("err", err)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return campaign, customerror.ErrNotFound
@@ -64,7 +62,7 @@ func (repo *CampaignRepo) FindByID(ID int) (models.Campaign, error) {
 }
 
 func (repo *CampaignRepo) Save(campaign models.Campaign) (models.Campaign, error) {
-	err := repo.DB.Create(campaign).Error
+	err := repo.DB.Create(&campaign).Error
 
 	if err != nil {
 		return campaign, err

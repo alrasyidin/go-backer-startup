@@ -1,12 +1,16 @@
 package handler
 
 import (
+	"errors"
 	"strconv"
 
+	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
+	"github.com/alrasyidin/bwa-backer-startup/middleware"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type CampaignHandler struct {
@@ -49,4 +53,36 @@ func (handler *CampaignHandler) GetCampaign(c *gin.Context) {
 	}
 
 	helper.SuccessResponse(c, "Campaign detail", dto.FormatCampaignDetailResponse(campaign))
+}
+
+func (handler *CampaignHandler) CreateCampaign(c *gin.Context) {
+	var input dto.CreateCampaignRequest
+
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			helper.FailedValidationResponse(c, "failed to create campaign", ve)
+			return
+		}
+		helper.BadRequestResponse(c, "failed to create campaign", nil, err)
+		return
+	}
+
+	currentUser, ok := c.MustGet(middleware.AuthorizationUserKey).(models.User)
+
+	if !ok {
+		helper.InternalServerResponse(c, "failed to create campaign, user not valid", nil, err.Error())
+		return
+	}
+
+	input.User = currentUser
+
+	campaign, err := handler.service.CreateCampaign(input)
+	if err != nil {
+		helper.InternalServerResponse(c, "failed to create campaign", nil, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(c, "success to create campaign", dto.FormatCampaignResponse(campaign))
 }

@@ -59,3 +59,11 @@ func NotFoundResponse(ctx *gin.Context, message string, data any) {
 	response := apiResponse(ctx, message, "error", http.StatusNotFound, data, nil)
 	ctx.JSON(response.Meta.Code, response)
 }
+
+func InternalServerResponse(ctx *gin.Context, message string, data any, errorMessage any) {
+	if message == "" {
+		message = "server could not process your requiest"
+	}
+	response := apiResponse(ctx, message, "error", http.StatusInternalServerError, data, errorMessage)
+	ctx.JSON(response.Meta.Code, response)
+}

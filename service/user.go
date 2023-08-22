@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/user/dto"
@@ -84,7 +83,6 @@ func (service *UserService) Login(input dto.LoginUserRequest) (models.User, erro
 
 func (service *UserService) IsEmailAvailable(email string) (bool, error) {
 	user, err := service.repo.FindByEmail(email)
-	fmt.Printf("user: %+v", user)
 	if err != nil {
 		return false, err
 	}
