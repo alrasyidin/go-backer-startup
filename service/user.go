@@ -16,6 +16,7 @@ type IUserService interface {
 	Login(input dto.LoginUserRequest) (models.User, error)
 	IsEmailAvailable(email string) (bool, error)
 	UploadAvatar(ID int, fileLocation string) (models.User, error)
+	GetUserByID(ID int) (models.User, error)
 }
 
 type UserService struct {
@@ -114,6 +115,20 @@ func (service *UserService) UploadAvatar(ID int, fileLocation string) (models.Us
 
 	user, err = service.repo.Update(user)
 	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (service *UserService) GetUserByID(ID int) (models.User, error) {
+	user, err := service.repo.FindByID(ID)
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return user, ErrUserNotFound
+		}
+
 		return user, err
 	}
 

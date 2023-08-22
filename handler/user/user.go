@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/alrasyidin/bwa-backer-startup/db/models"
+	"github.com/alrasyidin/bwa-backer-startup/middleware"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/service"
@@ -115,7 +117,9 @@ func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 		helper.BadRequestResponse(c, "Failed to upload image", gin.H{"is_uploaded": false}, nil)
 		return
 	}
-	userID := 1
+	currentUser := c.MustGet(middleware.AuthorizationUserKey).(models.User)
+	fmt.Println("currentUser", currentUser)
+	userID := currentUser.ID
 	path := fmt.Sprintf("images/%d-%s", userID, file.Filename)
 	err = c.SaveUploadedFile(file, path)
 

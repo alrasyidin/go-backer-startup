@@ -14,7 +14,7 @@ var (
 
 type Generator interface {
 	GenerateToken(userID int, expire time.Duration) (string, error)
-	ValidateToken(encodedToken string) (*jwt.Token, error)
+	ValidateToken(encodedToken string) (*CustomClaim, error)
 }
 
 type JWTGenerator struct {
@@ -40,8 +40,8 @@ func (g *JWTGenerator) GenerateToken(userID int, expire time.Duration) (string, 
 	return jwtToken, nil
 }
 
-func (g *JWTGenerator) ValidateToken(encodedToken string) (*jwt.Token, error) {
-	token, err := jwt.Parse(encodedToken, func(t *jwt.Token) (interface{}, error) {
+func (g *JWTGenerator) ValidateToken(encodedToken string) (*CustomClaim, error) {
+	token, err := jwt.ParseWithClaims(encodedToken, &CustomClaim{}, func(t *jwt.Token) (interface{}, error) {
 
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 
@@ -59,10 +59,15 @@ func (g *JWTGenerator) ValidateToken(encodedToken string) (*jwt.Token, error) {
 		return nil, ErrInvalidToken
 	}
 
-	_, ok := token.Claims.(*CustomClaim)
+	if !token.Valid {
+		return nil, ErrInvalidToken
+	}
+
+	claims, ok := token.Claims.(*CustomClaim)
+
 	if !ok {
 		return nil, ErrInvalidToken
 	}
 
-	return token, nil
+	return claims, nil
 }

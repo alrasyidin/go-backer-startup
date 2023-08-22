@@ -5,6 +5,7 @@ import (
 	"time"
 
 	handler "github.com/alrasyidin/bwa-backer-startup/handler/user"
+	"github.com/alrasyidin/bwa-backer-startup/middleware"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/alrasyidin/bwa-backer-startup/service"
@@ -54,7 +55,7 @@ func main() {
 		v1.POST("/users/register", userHandler.Register)
 		v1.POST("/users/session", userHandler.Login)
 		v1.POST("/users/email-check", userHandler.CheckEmailAvailability)
-		v1.POST("/users/avatar", userHandler.UploadAvatar)
+		v1.POST("/users/avatar", middleware.AuthMiddlware(userService, tokenGenerator), userHandler.UploadAvatar)
 	}
 
 	const PORT = ":8000"
