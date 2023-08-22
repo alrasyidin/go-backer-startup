@@ -1,14 +1,18 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
+	"github.com/gosimple/slug"
 )
 
 type ICampaignService interface {
 	GetCampaigns(UserID int) ([]models.Campaign, error)
 	GetCampaign(input dto.GetCampaignDetailRequest) (models.Campaign, error)
+	CreateCampaign(input dto.CreateCampaignRequest) (models.Campaign, error)
 }
 
 type CampaignService struct {
@@ -46,4 +50,25 @@ func (service *CampaignService) GetCampaign(input dto.GetCampaignDetailRequest) 
 	}
 
 	return campaign, nil
+}
+
+func (service *CampaignService) CreateCampaign(input dto.CreateCampaignRequest) (models.Campaign, error) {
+	slugCandidate := fmt.Sprintf("%s-%d", input.Name, input.User.ID)
+
+	campaign := models.Campaign{
+		Name:             input.Name,
+		UserId:           input.User.ID,
+		ShortDescription: input.ShortDescription,
+		Description:      input.Description,
+		GoalAmount:       input.GoalAmount,
+		Perks:            input.Perks,
+		Slug:             slug.Make(slugCandidate),
+	}
+
+	campaign, err := service.repo.Save(campaign)
+	if err != nil {
+		return campaign, err
+	}
+
+	return campaign, err
 }
