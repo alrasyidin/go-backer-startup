@@ -9,7 +9,6 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/alrasyidin/bwa-backer-startup/service"
-	ginzerolog "github.com/dn365/gin-zerolog"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -18,11 +17,15 @@ import (
 )
 
 func main() {
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	ginMode := os.Getenv("GIN_MODE")
+
+	if ginMode != gin.ReleaseMode {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
 	app := gin.Default()
 
 	app.SetTrustedProxies(nil)
-	app.Use(ginzerolog.Logger("gin"))
+	app.Use(middleware.HTTPLoggerMiddleware("BWA Backer"))
 
 	dsn := "host=localhost user=root password=postgres dbname=bwabackerdb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
 	db, err := gorm.Open(postgres.New(postgres.Config{
