@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
@@ -42,8 +41,6 @@ func (handler *CampaignHandler) GetCampaign(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("input", input)
-
 	campaign, err := handler.service.GetCampaign(input)
 
 	if err != nil {
@@ -51,5 +48,5 @@ func (handler *CampaignHandler) GetCampaign(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, "Campaign detail", campaign)
+	helper.SuccessResponse(c, "Campaign detail", dto.FormatCampaignDetailResponse(campaign))
 }
