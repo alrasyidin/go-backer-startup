@@ -54,3 +54,8 @@ func AbortResponse(ctx *gin.Context, message string, data any) {
 	response := apiResponse(ctx, message, "error", http.StatusUnauthorized, data, nil)
 	ctx.AbortWithStatusJSON(response.Meta.Code, response)
 }
+
+func NotFoundResponse(ctx *gin.Context, message string, data any) {
+	response := apiResponse(ctx, message, "error", http.StatusNotFound, data, nil)
+	ctx.JSON(response.Meta.Code, response)
+}

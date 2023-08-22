@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Campaign struct {
 	ID               int `gorm:"primaryKey"`
@@ -16,6 +18,7 @@ type Campaign struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	CampaignImages   []CampaignImage
+	User             User
 }
 
 type CampaignImage struct {

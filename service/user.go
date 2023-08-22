@@ -6,6 +6,7 @@ import (
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/user/dto"
+	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -23,12 +24,6 @@ type UserService struct {
 	repo repository.IUserRepo
 }
 
-var (
-	ErrUserNotFound      = errors.New("User not found")
-	ErrInvalidPassword   = errors.New("password is invalid")
-	ErrEmailAlreadyTaken = errors.New("email has been registered")
-)
-
 // Constructor for UserService
 func NewUserService(repo repository.IUserRepo) *UserService {
 	return &UserService{
@@ -45,7 +40,7 @@ func (service *UserService) Register(input dto.RegisterUserRequest) (models.User
 	}
 
 	if !isEmailAvailable {
-		return user, ErrEmailAlreadyTaken
+		return user, customerror.ErrEmailAlreadyTaken
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
@@ -76,12 +71,12 @@ func (service *UserService) Login(input dto.LoginUserRequest) (models.User, erro
 	}
 
 	if user.ID == 0 {
-		return user, ErrUserNotFound
+		return user, customerror.ErrNotFound
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.Password))
 	if err != nil {
-		return user, ErrInvalidPassword
+		return user, customerror.ErrInvalidPassword
 	}
 
 	return user, nil
@@ -95,7 +90,7 @@ func (service *UserService) IsEmailAvailable(email string) (bool, error) {
 	}
 
 	if user.ID != 0 {
-		return false, ErrEmailAlreadyTaken
+		return false, customerror.ErrEmailAlreadyTaken
 	}
 
 	return true, nil
@@ -105,7 +100,7 @@ func (service *UserService) UploadAvatar(ID int, fileLocation string) (models.Us
 	user, err := service.repo.FindByID(ID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return user, ErrUserNotFound
+			return user, customerror.ErrNotFound
 		}
 
 		return user, err
@@ -126,7 +121,7 @@ func (service *UserService) GetUserByID(ID int) (models.User, error) {
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return user, ErrUserNotFound
+			return user, customerror.ErrNotFound
 		}
 
 		return user, err

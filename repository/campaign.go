@@ -1,13 +1,18 @@
 package repository
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
+	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
 	"gorm.io/gorm"
 )
 
 type ICampaignRepo interface {
 	FindAll() ([]models.Campaign, error)
 	FindByUserID(UserID int) ([]models.Campaign, error)
+	FindByID(ID int) (models.Campaign, error)
 }
 
 type CampaignRepo struct {
@@ -39,4 +44,20 @@ func (repo *CampaignRepo) FindByUserID(UserID int) ([]models.Campaign, error) {
 	}
 
 	return campaigns, nil
+}
+
+func (repo *CampaignRepo) FindByID(ID int) (models.Campaign, error) {
+	var campaign models.Campaign
+
+	err := repo.DB.Where("id = ?", ID).Preload("User").Preload("CampaignImages").First(&campaign).Error
+	fmt.Println("err", err)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return campaign, customerror.ErrNotFound
+		}
+
+		return campaign, err
+	}
+
+	return campaign, nil
 }

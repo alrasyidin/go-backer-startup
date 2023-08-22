@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
@@ -30,4 +31,25 @@ func (handler *CampaignHandler) GetCampaigns(c *gin.Context) {
 	}
 
 	helper.SuccessResponse(c, "List of Campaigns", dto.FormatListCampaignResponse(campaigns))
+}
+
+func (handler *CampaignHandler) GetCampaign(c *gin.Context) {
+	var input dto.GetCampaignDetailRequest
+
+	err := c.ShouldBindUri(&input)
+	if err != nil {
+		helper.BadRequestResponse(c, "failed to get campaign detail", nil, err.Error())
+		return
+	}
+
+	fmt.Println("input", input)
+
+	campaign, err := handler.service.GetCampaign(input)
+
+	if err != nil {
+		helper.NotFoundResponse(c, err.Error(), nil)
+		return
+	}
+
+	helper.SuccessResponse(c, "Campaign detail", campaign)
 }

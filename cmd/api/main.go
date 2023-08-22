@@ -59,6 +59,7 @@ func main() {
 	campaignService := service.NewCampaignService(campaignRepo)
 	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
+	// static assets avatar
 	app.Static("/images", "./images")
 
 	v1 := app.Group("/api/v1")
@@ -70,8 +71,7 @@ func main() {
 
 		// campaigns
 		v1.GET("/campaigns", campaignHandler.GetCampaigns)
-
-		// static assets avatar
+		v1.GET("/campaigns/:id", campaignHandler.GetCampaign)
 
 	}
 
