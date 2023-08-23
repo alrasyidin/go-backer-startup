@@ -13,6 +13,8 @@ type ICampaignRepo interface {
 	FindByUserID(UserID int) ([]models.Campaign, error)
 	FindByID(ID int) (models.Campaign, error)
 	Save(campaign models.Campaign) (models.Campaign, error)
+	SaveImage(campaignImage models.CampaignImage) (models.CampaignImage, error)
+	MarkAllImageAsNonPrimary(campaignID int) (bool, error)
 }
 
 type CampaignRepo struct {
@@ -69,4 +71,25 @@ func (repo *CampaignRepo) Save(campaign models.Campaign) (models.Campaign, error
 	}
 
 	return campaign, err
+}
+
+func (repo *CampaignRepo) SaveImage(campaignImage models.CampaignImage) (models.CampaignImage, error) {
+	err := repo.DB.Create(&campaignImage).Error
+
+	if err != nil {
+		return campaignImage, err
+	}
+
+	return campaignImage, err
+}
+
+func (repo *CampaignRepo) MarkAllImageAsNonPrimary(campaignID int) (bool, error) {
+	// UPDATE campaign_images SET is_primary = true WHERE campaign_id = 1
+	err := repo.DB.Model(&models.CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", true).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, err
 }
