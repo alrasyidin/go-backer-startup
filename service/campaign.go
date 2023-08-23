@@ -13,6 +13,7 @@ type ICampaignService interface {
 	GetCampaigns(UserID int) ([]models.Campaign, error)
 	GetCampaign(input dto.GetCampaignDetailRequest) (models.Campaign, error)
 	CreateCampaign(input dto.CreateCampaignRequest) (models.Campaign, error)
+	SaveCampaignImage(input dto.CreateCampaignImageRequest, fileLocation string) (models.CampaignImage, error)
 }
 
 type CampaignService struct {
@@ -71,4 +72,24 @@ func (service *CampaignService) CreateCampaign(input dto.CreateCampaignRequest) 
 	}
 
 	return campaign, err
+}
+
+func (service *CampaignService) SaveCampaignImage(input dto.CreateCampaignImageRequest, fileLocation string) (models.CampaignImage, error) {
+	if input.IsPrimary {
+		_, err := service.repo.MarkAllImageAsNonPrimary(input.CampaignID)
+		if err != nil {
+			return models.CampaignImage{}, err
+		}
+	}
+	campaignImage := models.CampaignImage{
+		CampaignID: input.CampaignID,
+		FileName:   fileLocation,
+		IsPrimary:  input.IsPrimary,
+	}
+	newCampaignImage, err := service.repo.SaveImage(campaignImage)
+	if err != nil {
+		return newCampaignImage, err
+	}
+
+	return newCampaignImage, nil
 }

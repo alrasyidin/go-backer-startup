@@ -23,7 +23,7 @@ type Campaign struct {
 
 type CampaignImage struct {
 	ID         int `gorm:"primaryKey"`
-	CampaignId int
+	CampaignID int
 	FileName   string
 	IsPrimary  bool
 	CreatedAt  time.Time

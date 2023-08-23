@@ -13,6 +13,7 @@ type ICampaignRepo interface {
 	FindByUserID(UserID int) ([]models.Campaign, error)
 	FindByID(ID int) (models.Campaign, error)
 	Save(campaign models.Campaign) (models.Campaign, error)
+	Update(campaign models.Campaign) (models.Campaign, error)
 	SaveImage(campaignImage models.CampaignImage) (models.CampaignImage, error)
 	MarkAllImageAsNonPrimary(campaignID int) (bool, error)
 }
@@ -65,6 +66,16 @@ func (repo *CampaignRepo) FindByID(ID int) (models.Campaign, error) {
 
 func (repo *CampaignRepo) Save(campaign models.Campaign) (models.Campaign, error) {
 	err := repo.DB.Create(&campaign).Error
+
+	if err != nil {
+		return campaign, err
+	}
+
+	return campaign, err
+}
+
+func (repo *CampaignRepo) Update(campaign models.Campaign) (models.Campaign, error) {
+	err := repo.DB.Save(&campaign).Error
 
 	if err != nil {
 		return campaign, err
