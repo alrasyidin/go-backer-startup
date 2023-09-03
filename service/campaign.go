@@ -13,7 +13,8 @@ type ICampaignService interface {
 	GetCampaigns(UserID int) ([]models.Campaign, error)
 	GetCampaign(input dto.GetCampaignDetailRequest) (models.Campaign, error)
 	CreateCampaign(input dto.CreateCampaignRequest) (models.Campaign, error)
-	SaveCampaignImage(input dto.CreateCampaignImageRequest, fileLocation string) (models.CampaignImage, error)
+	UpdateCampaign(inputID dto.GetCampaignDetailRequest, inputData dto.CreateCampaignRequest) (models.Campaign, error)
+	SaveCampaignImage(input dto.SaveCampaignImageRequest, fileLocation string) (models.CampaignImage, error)
 }
 
 type CampaignService struct {
@@ -71,10 +72,30 @@ func (service *CampaignService) CreateCampaign(input dto.CreateCampaignRequest) 
 		return campaign, err
 	}
 
-	return campaign, err
+	return campaign, nil
 }
 
-func (service *CampaignService) SaveCampaignImage(input dto.CreateCampaignImageRequest, fileLocation string) (models.CampaignImage, error) {
+func (service *CampaignService) UpdateCampaign(inputID dto.GetCampaignDetailRequest, inputData dto.CreateCampaignRequest) (models.Campaign, error) {
+	campaign, err := service.repo.FindByID(inputID.ID)
+	if err != nil {
+		return campaign, err
+	}
+
+	campaign.Name = inputData.Name
+	campaign.ShortDescription = inputData.ShortDescription
+	campaign.Description = inputData.Description
+	campaign.GoalAmount = inputData.GoalAmount
+	campaign.Perks = inputData.Perks
+
+	updatedCampaign, err := service.repo.Update(campaign)
+	if err != nil {
+		return updatedCampaign, err
+	}
+
+	return updatedCampaign, nil
+}
+
+func (service *CampaignService) SaveCampaignImage(input dto.SaveCampaignImageRequest, fileLocation string) (models.CampaignImage, error) {
 	if input.IsPrimary {
 		_, err := service.repo.MarkAllImageAsNonPrimary(input.CampaignID)
 		if err != nil {

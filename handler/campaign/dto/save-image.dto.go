@@ -1,6 +1,6 @@
 package dto
 
-type CreateCampaignImageRequest struct {
-	IsPrimary  bool `form:"is_primary"`
-	CampaignID int  `form:"campaign_id"`
+type SaveCampaignImageRequest struct {
+	IsPrimary  bool `form:"is_primary" binding:"required"`
+	CampaignID int  `form:"campaign_id" binding:"required,numeric"`
 }

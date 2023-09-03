@@ -38,7 +38,7 @@ func main() {
 			SlowThreshold:             time.Second, // Slow SQL threshold
 			LogLevel:                  logger.Info, // Log level
 			IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
-			ParameterizedQueries:      true,        // Don't include params in the SQL log
+			ParameterizedQueries:      false,       // Don't include params in the SQL log
 			Colorful:                  true,        // Disable color
 		},
 	)
@@ -88,7 +88,8 @@ func main() {
 		v1.GET("/campaigns", campaignHandler.GetCampaigns)
 		v1.GET("/campaigns/:id", campaignHandler.GetCampaign)
 		v1.POST("/campaigns", middleware.AuthMiddlware(userService, tokenGenerator), campaignHandler.CreateCampaign)
-
+		v1.PUT("/campaigns/:id", middleware.AuthMiddlware(userService, tokenGenerator), campaignHandler.UpdateCampaign)
+		v1.POST("/campaign-images", middleware.AuthMiddlware(userService, tokenGenerator), campaignHandler.UploadImage)
 	}
 
 	const PORT = ":8000"
