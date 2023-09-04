@@ -5,6 +5,7 @@ import (
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
+	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/gosimple/slug"
 )
@@ -81,6 +82,10 @@ func (service *CampaignService) UpdateCampaign(inputID dto.GetCampaignDetailRequ
 		return campaign, err
 	}
 
+	if campaign.UserId != inputData.User.ID {
+		return campaign, customerror.ErrNotOwnedCampaign
+	}
+
 	campaign.Name = inputData.Name
 	campaign.ShortDescription = inputData.ShortDescription
 	campaign.Description = inputData.Description
@@ -96,6 +101,15 @@ func (service *CampaignService) UpdateCampaign(inputID dto.GetCampaignDetailRequ
 }
 
 func (service *CampaignService) SaveCampaignImage(input dto.SaveCampaignImageRequest, fileLocation string) (models.CampaignImage, error) {
+	campaign, err := service.repo.FindByID(input.CampaignID)
+	if err != nil {
+		return models.CampaignImage{}, err
+	}
+
+	if campaign.UserId != input.User.ID {
+		return models.CampaignImage{}, customerror.ErrNotOwnedCampaign
+	}
+
 	if input.IsPrimary {
 		_, err := service.repo.MarkAllImageAsNonPrimary(input.CampaignID)
 		if err != nil {

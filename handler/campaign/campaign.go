@@ -6,12 +6,13 @@ import (
 	"strconv"
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
-	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
 	"github.com/alrasyidin/bwa-backer-startup/middleware"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+
+	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
 )
 
 type CampaignHandler struct {
@@ -150,7 +151,14 @@ func (handler *CampaignHandler) UploadImage(c *gin.Context) {
 		return
 	}
 
-	currentUser := c.MustGet(middleware.AuthorizationUserKey).(models.User)
+	currentUser, ok := c.MustGet(middleware.AuthorizationUserKey).(models.User)
+
+	if !ok {
+		helper.InternalServerResponse(c, "failed to update campaign, user not valid", nil, err.Error())
+		return
+	}
+
+	input.User = currentUser
 
 	path := fmt.Sprintf("images/%d-%s", currentUser.ID, fileImage.Filename)
 	err = c.SaveUploadedFile(fileImage, path)

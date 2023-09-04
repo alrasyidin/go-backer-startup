@@ -96,7 +96,7 @@ func (repo *CampaignRepo) SaveImage(campaignImage models.CampaignImage) (models.
 
 func (repo *CampaignRepo) MarkAllImageAsNonPrimary(campaignID int) (bool, error) {
 	// UPDATE campaign_images SET is_primary = true WHERE campaign_id = 1
-	err := repo.DB.Model(&models.CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", true).Error
+	err := repo.DB.Model(&models.CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", false).Error
 
 	if err != nil {
 		return false, err
