@@ -40,7 +40,7 @@ CREATE TABLE "campaign_images" (
 
 CREATE TABLE "transactions" (
   "id" bigserial PRIMARY KEY,
-  "campain_id" int NOT NULL,
+  "campaign_id" int NOT NULL,
   "user_id" int NOT NULL,
   "amount" int NOT NULL,
   "code" varchar NOT NULL,
@@ -51,9 +51,9 @@ CREATE TABLE "transactions" (
 
 ALTER TABLE "campaigns" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
-ALTER TABLE "campaign_images" ADD FOREIGN KEY ("campain_id") REFERENCES "campaigns" ("id");
+ALTER TABLE "campaign_images" ADD FOREIGN KEY ("campaign_id") REFERENCES "campaigns" ("id");
 
-ALTER TABLE "transactions" ADD FOREIGN KEY ("campain_id") REFERENCES "campaigns" ("id");
+ALTER TABLE "transactions" ADD FOREIGN KEY ("campaign_id") REFERENCES "campaigns" ("id");
 
 ALTER TABLE "transactions" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 

@@ -3,15 +3,11 @@ package middleware
 import (
 	"strings"
 
+	"github.com/alrasyidin/bwa-backer-startup/pkg/constant"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-gonic/gin"
-)
-
-var (
-	HeaderAuthorizationType = "Bearer"
-	AuthorizationUserKey    = "currentUser"
 )
 
 func AuthMiddlware(userService service.IUserService, token tokenization.Generator) gin.HandlerFunc {
@@ -30,7 +26,7 @@ func AuthMiddlware(userService service.IUserService, token tokenization.Generato
 		}
 
 		tokenType := fields[0]
-		if tokenType != HeaderAuthorizationType {
+		if tokenType != constant.HeaderAuthorizationType {
 			helper.AbortResponse(c, "unsupported token", nil)
 			return
 		}
@@ -49,7 +45,7 @@ func AuthMiddlware(userService service.IUserService, token tokenization.Generato
 			return
 		}
 
-		c.Set(AuthorizationUserKey, user)
+		c.Set(constant.AuthorizationUserKey, user)
 
 		c.Next()
 	}

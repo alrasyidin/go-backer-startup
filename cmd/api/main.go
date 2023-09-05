@@ -6,6 +6,7 @@ import (
 	"time"
 
 	campaignHandle "github.com/alrasyidin/bwa-backer-startup/handler/campaign"
+	transactionHandle "github.com/alrasyidin/bwa-backer-startup/handler/transaction"
 	userHandle "github.com/alrasyidin/bwa-backer-startup/handler/user"
 	"github.com/alrasyidin/bwa-backer-startup/middleware"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
@@ -74,23 +75,32 @@ func main() {
 	campaignService := service.NewCampaignService(campaignRepo)
 	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
+	transactionRepo := repository.NewTransactionRepo(db)
+	transactionService := service.NewTransactionService(transactionRepo, campaignRepo)
+	transactionHandler := transactionHandle.NewTransactionHandler(transactionService)
+
 	// static assets avatar
 	app.Static("/images", "./images")
 
 	v1 := app.Group("/api/v1")
-	{
-		v1.POST("/users/register", userHandler.Register)
-		v1.POST("/users/session", userHandler.Login)
-		v1.POST("/users/email-check", userHandler.CheckEmailAvailability)
-		v1.POST("/users/avatar", middleware.AuthMiddlware(userService, tokenGenerator), userHandler.UploadAvatar)
 
-		// campaigns
-		v1.GET("/campaigns", campaignHandler.GetCampaigns)
-		v1.GET("/campaigns/:id", campaignHandler.GetCampaign)
-		v1.POST("/campaigns", middleware.AuthMiddlware(userService, tokenGenerator), campaignHandler.CreateCampaign)
-		v1.PUT("/campaigns/:id", middleware.AuthMiddlware(userService, tokenGenerator), campaignHandler.UpdateCampaign)
-		v1.POST("/campaign-images", middleware.AuthMiddlware(userService, tokenGenerator), campaignHandler.UploadImage)
-	}
+	freeRouter := v1
+	freeRouter.POST("/users/register", userHandler.Register)
+	freeRouter.POST("/users/session", userHandler.Login)
+	freeRouter.POST("/users/email-check", userHandler.CheckEmailAvailability)
+
+	freeRouter.GET("/campaigns", campaignHandler.GetCampaigns)
+	freeRouter.GET("/campaigns/:id", campaignHandler.GetCampaign)
+
+	requiredRouter := v1.Use(middleware.AuthMiddlware(userService, tokenGenerator))
+
+	requiredRouter.POST("/users/avatar", userHandler.UploadAvatar)
+
+	requiredRouter.POST("/campaigns", campaignHandler.CreateCampaign)
+	requiredRouter.PUT("/campaigns/:id", campaignHandler.UpdateCampaign)
+	requiredRouter.POST("/campaign-images", campaignHandler.UploadImage)
+
+	requiredRouter.GET("/campaigns/:id/transactions", transactionHandler.GetCampaignTransactions)
 
 	const PORT = ":8000"
 	log.Info().Msg("API has started at " + PORT)

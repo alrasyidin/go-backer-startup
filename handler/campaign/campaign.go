@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/alrasyidin/bwa-backer-startup/db/models"
-	"github.com/alrasyidin/bwa-backer-startup/middleware"
+	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-gonic/gin"
@@ -71,14 +70,7 @@ func (handler *CampaignHandler) CreateCampaign(c *gin.Context) {
 		return
 	}
 
-	currentUser, ok := c.MustGet(middleware.AuthorizationUserKey).(models.User)
-
-	if !ok {
-		helper.InternalServerResponse(c, "failed to create campaign, user not valid", nil, err.Error())
-		return
-	}
-
-	input.User = currentUser
+	input.User = helper.GetCurrentUser(c, customerror.ErrNotOwnedCampaign.Error())
 
 	campaign, err := handler.service.CreateCampaign(input)
 	if err != nil {
@@ -111,14 +103,7 @@ func (handler *CampaignHandler) UpdateCampaign(c *gin.Context) {
 		return
 	}
 
-	currentUser, ok := c.MustGet(middleware.AuthorizationUserKey).(models.User)
-
-	if !ok {
-		helper.InternalServerResponse(c, "failed to update campaign, user not valid", nil, err.Error())
-		return
-	}
-
-	inputData.User = currentUser
+	inputData.User = helper.GetCurrentUser(c, customerror.ErrNotOwnedCampaign.Error())
 
 	campaign, err := handler.service.UpdateCampaign(inputID, inputData)
 	if err != nil {
@@ -150,17 +135,9 @@ func (handler *CampaignHandler) UploadImage(c *gin.Context) {
 		helper.BadRequestResponse(c, "Failed to upload campaign image", data, nil)
 		return
 	}
+	input.User = helper.GetCurrentUser(c, customerror.ErrNotOwnedCampaign.Error())
 
-	currentUser, ok := c.MustGet(middleware.AuthorizationUserKey).(models.User)
-
-	if !ok {
-		helper.InternalServerResponse(c, "failed to update campaign, user not valid", nil, err.Error())
-		return
-	}
-
-	input.User = currentUser
-
-	path := fmt.Sprintf("images/%d-%s", currentUser.ID, fileImage.Filename)
+	path := fmt.Sprintf("images/%d-%s", input.User.ID, fileImage.Filename)
 	err = c.SaveUploadedFile(fileImage, path)
 	if err != nil {
 		helper.BadRequestResponse(c, "Failed to upload campaign image", data, nil)
