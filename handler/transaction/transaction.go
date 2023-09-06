@@ -28,11 +28,23 @@ func (handler *TransactionHandler) GetCampaignTransactions(c *gin.Context) {
 
 	input.User = helper.GetCurrentUser(c, customerror.ErrNotOwnedCampaign.Error())
 
-	transactions, err := handler.service.GetTransactionsByCampaignID(input)
+	transactions, err := handler.service.GetCampaignTransactions(input)
 	if err != nil {
 		helper.BadRequestResponse(c, "failed to get transaction campaign's", nil, err.Error())
 		return
 	}
 
 	helper.SuccessResponse(c, "Success get transaction campaign's", dto.FormatListTransactionCampaignResponse(transactions))
+}
+
+func (handler *TransactionHandler) GetUserTransactions(c *gin.Context) {
+	currentUser := helper.GetCurrentUser(c, customerror.ErrNotOwnedCampaign.Error())
+
+	transactions, err := handler.service.GetUserTransactions(currentUser.ID)
+	if err != nil {
+		helper.BadRequestResponse(c, "failed to get transaction user's", nil, err.Error())
+		return
+	}
+
+	helper.SuccessResponse(c, "Success get transaction user's", dto.FormatListTransactionUserResponse(transactions))
 }

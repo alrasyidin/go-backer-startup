@@ -55,6 +55,8 @@ func main() {
 		log.Fatal().Msgf("failed connect to db: %v", err)
 	}
 
+	// db = db.Set("gorm:auto_preload", false)
+
 	log.Info().Msg("connected to db")
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -99,8 +101,9 @@ func main() {
 	requiredRouter.POST("/campaigns", campaignHandler.CreateCampaign)
 	requiredRouter.PUT("/campaigns/:id", campaignHandler.UpdateCampaign)
 	requiredRouter.POST("/campaign-images", campaignHandler.UploadImage)
-
 	requiredRouter.GET("/campaigns/:id/transactions", transactionHandler.GetCampaignTransactions)
+
+	requiredRouter.GET("/transactions", transactionHandler.GetUserTransactions)
 
 	const PORT = ":8000"
 	log.Info().Msg("API has started at " + PORT)

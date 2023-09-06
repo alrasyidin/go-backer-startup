@@ -8,7 +8,8 @@ import (
 )
 
 type ITransactionService interface {
-	GetTransactionsByCampaignID(input dto.GetTransactionCampaignRequest) ([]models.Transaction, error)
+	GetCampaignTransactions(input dto.GetTransactionCampaignRequest) ([]models.Transaction, error)
+	GetUserTransactions(userID int) ([]models.Transaction, error)
 }
 
 type TransactionService struct {
@@ -23,7 +24,7 @@ func NewTransactionService(repo repository.ITransactionRepo, campaignRepo reposi
 	}
 }
 
-func (service *TransactionService) GetTransactionsByCampaignID(input dto.GetTransactionCampaignRequest) ([]models.Transaction, error) {
+func (service *TransactionService) GetCampaignTransactions(input dto.GetTransactionCampaignRequest) ([]models.Transaction, error) {
 	campaign, err := service.campaignRepo.FindByID(input.ID)
 	if err != nil {
 		return []models.Transaction{}, err
@@ -34,6 +35,16 @@ func (service *TransactionService) GetTransactionsByCampaignID(input dto.GetTran
 	}
 
 	transactions, err := service.repo.FindByCampaignID(input.ID)
+
+	if err != nil {
+		return transactions, err
+	}
+
+	return transactions, nil
+}
+
+func (service *TransactionService) GetUserTransactions(userID int) ([]models.Transaction, error) {
+	transactions, err := service.repo.FindByUserID(userID)
 
 	if err != nil {
 		return transactions, err
