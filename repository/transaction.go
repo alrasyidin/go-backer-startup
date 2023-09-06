@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"gorm.io/gorm"
 )
@@ -10,6 +8,7 @@ import (
 type ITransactionRepo interface {
 	FindByCampaignID(ID int) ([]models.Transaction, error)
 	FindByUserID(ID int) ([]models.Transaction, error)
+	Save(transaction models.Transaction) (models.Transaction, error)
 }
 
 type TransactionRepo struct {
@@ -41,10 +40,18 @@ func (repo *TransactionRepo) FindByUserID(ID int) ([]models.Transaction, error) 
 		UserId: ID,
 	}).Find(&transactions).Error
 
-	log.Printf("transactions %+v\n", transactions)
 	if err != nil {
 		return transactions, err
 	}
 
 	return transactions, nil
+}
+
+func (repo *TransactionRepo) Save(transaction models.Transaction) (models.Transaction, error) {
+	err := repo.DB.Create(&transaction).Error
+	if err != nil {
+		return transaction, err
+	}
+
+	return transaction, nil
 }

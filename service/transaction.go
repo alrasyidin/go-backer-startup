@@ -10,6 +10,7 @@ import (
 type ITransactionService interface {
 	GetCampaignTransactions(input dto.GetTransactionCampaignRequest) ([]models.Transaction, error)
 	GetUserTransactions(userID int) ([]models.Transaction, error)
+	CreateTransaction(input dto.CreateTransactionRequest) (models.Transaction, error)
 }
 
 type TransactionService struct {
@@ -51,4 +52,21 @@ func (service *TransactionService) GetUserTransactions(userID int) ([]models.Tra
 	}
 
 	return transactions, nil
+}
+
+func (service *TransactionService) CreateTransaction(input dto.CreateTransactionRequest) (models.Transaction, error) {
+	transaction := models.Transaction{
+		CampaignId: input.CampaignID,
+		UserId:     input.User.ID,
+		Amount:     input.CampaignID,
+		Code:       "",
+		Status:     "PENDING",
+	}
+
+	newTransaction, err := service.repo.Save(transaction)
+	if err != nil {
+		return newTransaction, err
+	}
+
+	return newTransaction, nil
 }
