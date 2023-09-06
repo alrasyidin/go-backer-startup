@@ -9,6 +9,7 @@ type ITransactionRepo interface {
 	FindByCampaignID(ID int) ([]models.Transaction, error)
 	FindByUserID(ID int) ([]models.Transaction, error)
 	Save(transaction models.Transaction) (models.Transaction, error)
+	Update(transaction models.Transaction) (models.Transaction, error)
 }
 
 type TransactionRepo struct {
@@ -49,6 +50,14 @@ func (repo *TransactionRepo) FindByUserID(ID int) ([]models.Transaction, error) 
 
 func (repo *TransactionRepo) Save(transaction models.Transaction) (models.Transaction, error) {
 	err := repo.DB.Create(&transaction).Error
+	if err != nil {
+		return transaction, err
+	}
+
+	return transaction, nil
+}
+func (repo *TransactionRepo) Update(transaction models.Transaction) (models.Transaction, error) {
+	err := repo.DB.Save(&transaction).Error
 	if err != nil {
 		return transaction, err
 	}

@@ -4,6 +4,7 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/transaction/dto"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
+	"github.com/alrasyidin/bwa-backer-startup/pkg/payment"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 )
 
@@ -14,14 +15,16 @@ type ITransactionService interface {
 }
 
 type TransactionService struct {
-	repo         repository.ITransactionRepo
-	campaignRepo repository.ICampaignRepo
+	repo            repository.ITransactionRepo
+	campaignRepo    repository.ICampaignRepo
+	paymentMidtrans payment.IMidtrans
 }
 
-func NewTransactionService(repo repository.ITransactionRepo, campaignRepo repository.ICampaignRepo) *TransactionService {
+func NewTransactionService(repo repository.ITransactionRepo, campaignRepo repository.ICampaignRepo, paymentMidtrans payment.IMidtrans) *TransactionService {
 	return &TransactionService{
 		repo,
 		campaignRepo,
+		paymentMidtrans,
 	}
 }
 
@@ -56,14 +59,25 @@ func (service *TransactionService) GetUserTransactions(userID int) ([]models.Tra
 
 func (service *TransactionService) CreateTransaction(input dto.CreateTransactionRequest) (models.Transaction, error) {
 	transaction := models.Transaction{
-		CampaignId: input.CampaignID,
+		CampaignID: input.CampaignID,
 		UserId:     input.User.ID,
-		Amount:     input.CampaignID,
+		Amount:     input.Amount,
 		Code:       "",
 		Status:     "PENDING",
 	}
 
 	newTransaction, err := service.repo.Save(transaction)
+	if err != nil {
+		return newTransaction, err
+	}
+
+	paymentURl, err := service.paymentMidtrans.GetPaymentURL(transaction, input.User)
+
+	if err != nil {
+		return newTransaction, err
+	}
+	newTransaction.PaymentURL = paymentURl
+	newTransaction, err = service.repo.Update(newTransaction)
 	if err != nil {
 		return newTransaction, err
 	}

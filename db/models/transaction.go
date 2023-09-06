@@ -6,10 +6,11 @@ import (
 
 type Transaction struct {
 	ID         int `gorm:"primaryKey"`
-	CampaignId int
+	CampaignID int
 	UserId     int
 	Amount     int
 	Code       string
+	PaymentURL string
 	Status     string
 	User       *User
 	Campaign   *Campaign

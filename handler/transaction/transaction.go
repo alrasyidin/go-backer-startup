@@ -73,5 +73,5 @@ func (handler *TransactionHandler) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	helper.SuccessResponse(c, "Success to create transaction", transaction)
+	helper.SuccessResponse(c, "Success to create transaction", dto.FormatTransactionResponse(transaction))
 }

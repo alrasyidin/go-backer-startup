@@ -9,10 +9,12 @@ import (
 	transactionHandle "github.com/alrasyidin/bwa-backer-startup/handler/transaction"
 	userHandle "github.com/alrasyidin/bwa-backer-startup/handler/user"
 	"github.com/alrasyidin/bwa-backer-startup/middleware"
+	"github.com/alrasyidin/bwa-backer-startup/pkg/payment"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-gonic/gin"
+	"github.com/midtrans/midtrans-go"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
@@ -77,8 +79,12 @@ func main() {
 	campaignService := service.NewCampaignService(campaignRepo)
 	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
+	paymentMidtrans := payment.NewMidtrans(&payment.MidtransConfig{
+		ServerKey: "SB-Mid-server-thLn0-Fjl5Nu9-eEEbfM_56n",
+		EnvType:   midtrans.Sandbox,
+	})
 	transactionRepo := repository.NewTransactionRepo(db)
-	transactionService := service.NewTransactionService(transactionRepo, campaignRepo)
+	transactionService := service.NewTransactionService(transactionRepo, campaignRepo, paymentMidtrans)
 	transactionHandler := transactionHandle.NewTransactionHandler(transactionService)
 
 	// static assets avatar
@@ -104,6 +110,7 @@ func main() {
 	requiredRouter.GET("/campaigns/:id/transactions", transactionHandler.GetCampaignTransactions)
 
 	requiredRouter.GET("/transactions", transactionHandler.GetUserTransactions)
+	requiredRouter.POST("/transactions", transactionHandler.CreateTransaction)
 
 	const PORT = ":8000"
 	log.Info().Msg("API has started at " + PORT)
