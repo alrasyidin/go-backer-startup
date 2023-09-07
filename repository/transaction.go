@@ -1,8 +1,9 @@
 package repository
 
 import (
+	"context"
 	"errors"
-	"fmt"
+	"time"
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
@@ -29,7 +30,9 @@ func NewTransactionRepo(db *gorm.DB) *TransactionRepo {
 func (repo *TransactionRepo) FindByCampaignID(ID int) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 
-	err := repo.DB.Preload("User").Where("campaign_id = ?", ID).Order("id DESC").Find(&transactions).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Preload("User").Where("campaign_id = ?", ID).Order("id DESC").Find(&transactions).Error
 	if err != nil {
 		return transactions, err
 	}
@@ -40,7 +43,9 @@ func (repo *TransactionRepo) FindByCampaignID(ID int) ([]models.Transaction, err
 func (repo *TransactionRepo) FindByUserID(ID int) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 
-	err := repo.DB.Preload("Campaign.CampaignImages", &models.CampaignImage{
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Preload("Campaign.CampaignImages", &models.CampaignImage{
 		IsPrimary: true,
 	}).Where(&models.Transaction{
 		UserId: ID,
@@ -54,9 +59,10 @@ func (repo *TransactionRepo) FindByUserID(ID int) ([]models.Transaction, error) 
 }
 
 func (repo *TransactionRepo) FindByID(ID int) (models.Transaction, error) {
-	fmt.Println("trans", repo)
 	var transaction models.Transaction
-	err := repo.DB.Where("id = ?", ID).Find(&transaction).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Where("id = ?", ID).First(&transaction).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return transaction, customerror.ErrNotFound
@@ -68,7 +74,9 @@ func (repo *TransactionRepo) FindByID(ID int) (models.Transaction, error) {
 }
 
 func (repo *TransactionRepo) Save(transaction models.Transaction) (models.Transaction, error) {
-	err := repo.DB.Create(&transaction).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Create(&transaction).Error
 	if err != nil {
 		return transaction, err
 	}
@@ -77,7 +85,9 @@ func (repo *TransactionRepo) Save(transaction models.Transaction) (models.Transa
 }
 
 func (repo *TransactionRepo) Update(transaction models.Transaction) (models.Transaction, error) {
-	err := repo.DB.Save(&transaction).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Save(&transaction).Error
 	if err != nil {
 		return transaction, err
 	}

@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"errors"
+	"time"
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
@@ -30,7 +32,9 @@ func NewCampaignRepo(db *gorm.DB) *CampaignRepo {
 func (repo *CampaignRepo) FindAll() ([]models.Campaign, error) {
 	var campaigns []models.Campaign
 
-	err := repo.DB.Preload("CampaignImages", "campaign_images.is_primary = true").Find(&campaigns).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Preload("CampaignImages", "campaign_images.is_primary = true").Find(&campaigns).Error
 	if err != nil {
 		return campaigns, err
 	}
@@ -41,7 +45,9 @@ func (repo *CampaignRepo) FindAll() ([]models.Campaign, error) {
 func (repo *CampaignRepo) FindByUserID(UserID int) ([]models.Campaign, error) {
 	var campaigns []models.Campaign
 
-	err := repo.DB.Where("user_id = ?", UserID).Preload("CampaignImages", "campaign_images.is_primary = true").Find(&campaigns).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Where("user_id = ?", UserID).Preload("CampaignImages", "campaign_images.is_primary = true").Find(&campaigns).Error
 	if err != nil {
 		return campaigns, err
 	}
@@ -52,7 +58,9 @@ func (repo *CampaignRepo) FindByUserID(UserID int) ([]models.Campaign, error) {
 func (repo *CampaignRepo) FindByID(ID int) (models.Campaign, error) {
 	var campaign models.Campaign
 
-	err := repo.DB.Where("id = ?", ID).Preload("User").Preload("CampaignImages").First(&campaign).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Where("id = ?", ID).Preload("User").Preload("CampaignImages").First(&campaign).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return campaign, customerror.ErrNotFound
@@ -65,7 +73,9 @@ func (repo *CampaignRepo) FindByID(ID int) (models.Campaign, error) {
 }
 
 func (repo *CampaignRepo) Save(campaign models.Campaign) (models.Campaign, error) {
-	err := repo.DB.Create(&campaign).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Create(&campaign).Error
 
 	if err != nil {
 		return campaign, err
@@ -75,7 +85,9 @@ func (repo *CampaignRepo) Save(campaign models.Campaign) (models.Campaign, error
 }
 
 func (repo *CampaignRepo) Update(campaign models.Campaign) (models.Campaign, error) {
-	err := repo.DB.Save(&campaign).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Save(&campaign).Error
 
 	if err != nil {
 		return campaign, err
@@ -85,7 +97,9 @@ func (repo *CampaignRepo) Update(campaign models.Campaign) (models.Campaign, err
 }
 
 func (repo *CampaignRepo) SaveImage(campaignImage models.CampaignImage) (models.CampaignImage, error) {
-	err := repo.DB.Create(&campaignImage).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Create(&campaignImage).Error
 
 	if err != nil {
 		return campaignImage, err
@@ -96,7 +110,9 @@ func (repo *CampaignRepo) SaveImage(campaignImage models.CampaignImage) (models.
 
 func (repo *CampaignRepo) MarkAllImageAsNonPrimary(campaignID int) (bool, error) {
 	// UPDATE campaign_images SET is_primary = true WHERE campaign_id = 1
-	err := repo.DB.Model(&models.CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", false).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Model(&models.CampaignImage{}).Where("campaign_id = ?", campaignID).Update("is_primary", false).Error
 
 	if err != nil {
 		return false, err

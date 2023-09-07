@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"context"
+	"time"
+
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"gorm.io/gorm"
 )
@@ -22,7 +25,9 @@ func NewUserRepo(db *gorm.DB) *UserRepo {
 }
 
 func (repo *UserRepo) Save(user models.User) (models.User, error) {
-	err := repo.DB.Create(&user).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Create(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}
@@ -31,7 +36,9 @@ func (repo *UserRepo) Save(user models.User) (models.User, error) {
 }
 func (repo *UserRepo) FindByEmail(email string) (models.User, error) {
 	var user models.User
-	err := repo.DB.Where("email = ?", email).Find(&user).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Where("email = ?", email).Find(&user).Error
 	if err != nil {
 		return models.User{}, err
 	}
@@ -41,7 +48,9 @@ func (repo *UserRepo) FindByEmail(email string) (models.User, error) {
 
 func (repo *UserRepo) FindByID(id int) (models.User, error) {
 	var user models.User
-	err := repo.DB.Where("id = ?", id).Find(&user).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Where("id = ?", id).Find(&user).Error
 
 	if err != nil {
 		return user, err
@@ -51,7 +60,9 @@ func (repo *UserRepo) FindByID(id int) (models.User, error) {
 }
 
 func (repo *UserRepo) Update(user models.User) (models.User, error) {
-	err := repo.DB.Save(&user).Error
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	err := repo.DB.WithContext(ctx).Save(&user).Error
 	if err != nil {
 		return user, err
 	}
