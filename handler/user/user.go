@@ -135,3 +135,9 @@ func (handler *UserHandler) UploadAvatar(c *gin.Context) {
 
 	helper.SuccessResponse(c, "Avatar successfully uploaded", gin.H{"is_uploaded": true})
 }
+
+func (handler *UserHandler) Me(c *gin.Context) {
+	currentUser := helper.GetCurrentUser(c, "")
+	response := dto.FormatUser(currentUser, "")
+	helper.SuccessResponse(c, "Avatar successfully uploaded", response)
+}

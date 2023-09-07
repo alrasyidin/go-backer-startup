@@ -107,6 +107,7 @@ func main() {
 	requiredRouter := v1.Use(middleware.AuthMiddlware(userService, tokenGenerator))
 
 	requiredRouter.POST("/users/avatar", userHandler.UploadAvatar)
+	requiredRouter.GET("/users/me", userHandler.Me)
 
 	requiredRouter.POST("/campaigns", campaignHandler.CreateCampaign)
 	requiredRouter.PUT("/campaigns/:id", campaignHandler.UpdateCampaign)
