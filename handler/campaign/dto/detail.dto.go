@@ -43,6 +43,7 @@ func FormatCampaignDetailResponse(campaign models.Campaign) CampaignDetailRespon
 		UserId:           campaign.UserId,
 		ShortDescription: campaign.ShortDescription,
 		Description:      campaign.Description,
+		BackerCount:      campaign.BackerCount,
 		GoalAmount:       campaign.GoalAmount,
 		CurrentAmount:    campaign.CurrentAmount,
 		Slug:             campaign.Slug,

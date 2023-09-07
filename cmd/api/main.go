@@ -9,10 +9,11 @@ import (
 	transactionHandle "github.com/alrasyidin/bwa-backer-startup/handler/transaction"
 	userHandle "github.com/alrasyidin/bwa-backer-startup/handler/user"
 	"github.com/alrasyidin/bwa-backer-startup/middleware"
-	"github.com/alrasyidin/bwa-backer-startup/pkg/payment"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/tokenization"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/alrasyidin/bwa-backer-startup/service"
+	"github.com/gin-contrib/cors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/midtrans/midtrans-go"
 	"github.com/rs/zerolog"
@@ -32,6 +33,7 @@ func main() {
 
 	app.SetTrustedProxies(nil)
 	app.Use(middleware.HTTPLoggerMiddleware("BWA Backer"))
+	app.Use(cors.Default())
 	app.Use(gin.Recovery())
 
 	dsn := "host=localhost user=root password=postgres dbname=bwabackerdb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
@@ -79,13 +81,13 @@ func main() {
 	campaignService := service.NewCampaignService(campaignRepo)
 	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
-	paymentMidtrans := payment.NewMidtrans(&payment.MidtransConfig{
+	transactionRepo := repository.NewTransactionRepo(db)
+	paymentService := service.NewPayment(&service.PaymentConfig{
 		ServerKey: "SB-Mid-server-thLn0-Fjl5Nu9-eEEbfM_56n",
 		EnvType:   midtrans.Sandbox,
-	})
-	transactionRepo := repository.NewTransactionRepo(db)
-	transactionService := service.NewTransactionService(transactionRepo, campaignRepo, paymentMidtrans)
-	transactionHandler := transactionHandle.NewTransactionHandler(transactionService)
+	}, transactionRepo, campaignRepo)
+	transactionService := service.NewTransactionService(transactionRepo, campaignRepo, paymentService)
+	transactionHandler := transactionHandle.NewTransactionHandler(transactionService, paymentService)
 
 	// static assets avatar
 	app.Static("/images", "./images")
@@ -99,6 +101,8 @@ func main() {
 
 	freeRouter.GET("/campaigns", campaignHandler.GetCampaigns)
 	freeRouter.GET("/campaigns/:id", campaignHandler.GetCampaign)
+
+	freeRouter.POST("/transactions/notification", transactionHandler.ProcessPaymentNotification)
 
 	requiredRouter := v1.Use(middleware.AuthMiddlware(userService, tokenGenerator))
 

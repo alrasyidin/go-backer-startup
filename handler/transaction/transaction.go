@@ -13,11 +13,12 @@ import (
 )
 
 type TransactionHandler struct {
-	service service.ITransactionService
+	service        service.ITransactionService
+	paymentService service.IPaymentService
 }
 
-func NewTransactionHandler(service service.ITransactionService) *TransactionHandler {
-	return &TransactionHandler{service}
+func NewTransactionHandler(service service.ITransactionService, paymentService service.IPaymentService) *TransactionHandler {
+	return &TransactionHandler{service, paymentService}
 }
 
 func (handler *TransactionHandler) GetCampaignTransactions(c *gin.Context) {
@@ -69,9 +70,31 @@ func (handler *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	transaction, err := handler.service.CreateTransaction(input)
 	if err != nil {
-		helper.BadRequestResponse(c, "failed to creaet transaction", nil, err.Error())
+		helper.BadRequestResponse(c, "failed to create transaction", nil, err.Error())
 		return
 	}
 
 	helper.SuccessResponse(c, "Success to create transaction", dto.FormatTransactionResponse(transaction))
+}
+
+func (handler *TransactionHandler) ProcessPaymentNotification(c *gin.Context) {
+	var input dto.TransactionNotificationRequest
+
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			helper.FailedValidationResponse(c, "failed to process payment notification", ve)
+			return
+		}
+		helper.BadRequestResponse(c, "failed to process payment notification", nil, err)
+		return
+	}
+
+	err = handler.paymentService.ProcessPayment(input)
+	if err != nil {
+		helper.BadRequestResponse(c, "failed to process payment notification", nil, err)
+		return
+	}
+	helper.SuccessResponse(c, "Success to process payment notification", nil)
 }

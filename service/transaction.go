@@ -4,7 +4,6 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/transaction/dto"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
-	"github.com/alrasyidin/bwa-backer-startup/pkg/payment"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 )
 
@@ -15,16 +14,16 @@ type ITransactionService interface {
 }
 
 type TransactionService struct {
-	repo            repository.ITransactionRepo
-	campaignRepo    repository.ICampaignRepo
-	paymentMidtrans payment.IMidtrans
+	repo           repository.ITransactionRepo
+	campaignRepo   repository.ICampaignRepo
+	paymentService IPaymentService
 }
 
-func NewTransactionService(repo repository.ITransactionRepo, campaignRepo repository.ICampaignRepo, paymentMidtrans payment.IMidtrans) *TransactionService {
+func NewTransactionService(repo repository.ITransactionRepo, campaignRepo repository.ICampaignRepo, paymentService IPaymentService) *TransactionService {
 	return &TransactionService{
 		repo,
 		campaignRepo,
-		paymentMidtrans,
+		paymentService,
 	}
 }
 
@@ -71,7 +70,7 @@ func (service *TransactionService) CreateTransaction(input dto.CreateTransaction
 		return newTransaction, err
 	}
 
-	paymentURl, err := service.paymentMidtrans.GetPaymentURL(transaction, input.User)
+	paymentURl, err := service.paymentService.GetPaymentURL(newTransaction, input.User)
 
 	if err != nil {
 		return newTransaction, err
