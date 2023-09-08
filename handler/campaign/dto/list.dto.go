@@ -1,11 +1,16 @@
 package dto
 
-import "github.com/alrasyidin/bwa-backer-startup/db/models"
+import (
+	"github.com/alrasyidin/bwa-backer-startup/db/models"
+	"github.com/alrasyidin/bwa-backer-startup/pkg/common"
+)
 
-type CampaginRequest struct {
+type GetCampaignsRequest struct {
+	common.PaginationRequest
+	UserID int `form:"user_id"`
 }
 
-type CampaginResponse struct {
+type CampaignResponse struct {
 	ID               int    `json:"id"`
 	Name             string `json:"name"`
 	UserId           int    `json:"user_id"`
@@ -17,8 +22,8 @@ type CampaginResponse struct {
 	ImageURL         string `json:"image_url"`
 }
 
-func FormatCampaignResponse(campaign models.Campaign) CampaginResponse {
-	campaginResponse := CampaginResponse{
+func FormatCampaignResponse(campaign models.Campaign) CampaignResponse {
+	campaignResponse := CampaignResponse{
 		ID:               campaign.ID,
 		Name:             campaign.Name,
 		UserId:           campaign.UserId,
@@ -31,18 +36,18 @@ func FormatCampaignResponse(campaign models.Campaign) CampaginResponse {
 	}
 
 	if len(campaign.CampaignImages) > 0 {
-		campaginResponse.ImageURL = campaign.CampaignImages[0].FileName
+		campaignResponse.ImageURL = campaign.CampaignImages[0].FileName
 	}
 
-	return campaginResponse
+	return campaignResponse
 }
 
-func FormatListCampaignResponse(campaigns []models.Campaign) []CampaginResponse {
-	listCampaginResponse := []CampaginResponse{}
+func FormatListCampaignResponse(campaigns []models.Campaign) []CampaignResponse {
+	listCampaignResponse := []CampaignResponse{}
 
 	for _, campaign := range campaigns {
-		listCampaginResponse = append(listCampaginResponse, FormatCampaignResponse(campaign))
+		listCampaignResponse = append(listCampaignResponse, FormatCampaignResponse(campaign))
 	}
 
-	return listCampaginResponse
+	return listCampaignResponse
 }

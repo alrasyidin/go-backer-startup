@@ -5,13 +5,14 @@ import (
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	"github.com/alrasyidin/bwa-backer-startup/handler/campaign/dto"
+	"github.com/alrasyidin/bwa-backer-startup/pkg/common"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/gosimple/slug"
 )
 
 type ICampaignService interface {
-	GetCampaigns(UserID int) ([]models.Campaign, error)
+	GetCampaigns(input dto.GetCampaignsRequest) ([]models.Campaign, *common.Pagination, error)
 	GetCampaign(input dto.GetCampaignDetailRequest) (models.Campaign, error)
 	CreateCampaign(input dto.CreateCampaignRequest) (models.Campaign, error)
 	UpdateCampaign(inputID dto.GetCampaignDetailRequest, inputData dto.CreateCampaignRequest) (models.Campaign, error)
@@ -29,21 +30,24 @@ func NewCampaignService(repo repository.ICampaignRepo) *CampaignService {
 	}
 }
 
-func (service *CampaignService) GetCampaigns(UserID int) ([]models.Campaign, error) {
-	if UserID != 0 {
-		campaigns, err := service.repo.FindByUserID(UserID)
+func (service *CampaignService) GetCampaigns(input dto.GetCampaignsRequest) ([]models.Campaign, *common.Pagination, error) {
+	if input.UserID != 0 {
+		campaigns, totalItems, err := service.repo.FindByUserIDWithCount(input.UserID, input.Page, input.PerPage)
 
 		if err != nil {
-			return campaigns, err
+			return campaigns, nil, err
 		}
 
-		return campaigns, nil
+		pagination := common.NewPagination(input.Page, input.PerPage, totalItems)
+		return campaigns, pagination, nil
 	}
-	campaigns, err := service.repo.FindAll()
+	campaigns, totalItems, err := service.repo.FindAllWithCount(input.Page, input.PerPage)
+	pagination := common.NewPagination(input.Page, input.PerPage, totalItems)
+
 	if err != nil {
-		return campaigns, err
+		return campaigns, nil, err
 	}
-	return campaigns, nil
+	return campaigns, pagination, nil
 }
 
 func (service *CampaignService) GetCampaign(input dto.GetCampaignDetailRequest) (models.Campaign, error) {

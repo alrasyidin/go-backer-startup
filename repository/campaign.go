@@ -12,7 +12,9 @@ import (
 
 type ICampaignRepo interface {
 	FindAll() ([]models.Campaign, error)
+	FindAllWithCount(page, perPage int) ([]models.Campaign, int, error)
 	FindByUserID(UserID int) ([]models.Campaign, error)
+	FindByUserIDWithCount(UserID, page, perPage int) ([]models.Campaign, int, error)
 	FindByID(ID int) (models.Campaign, error)
 	Save(campaign models.Campaign) (models.Campaign, error)
 	Update(campaign models.Campaign) (models.Campaign, error)
@@ -29,6 +31,25 @@ func NewCampaignRepo(db *gorm.DB) *CampaignRepo {
 	return &CampaignRepo{DB: db}
 }
 
+func (repo *CampaignRepo) FindAllWithCount(page, perPage int) ([]models.Campaign, int, error) {
+	var campaigns []models.Campaign
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var totalItems int64
+	repo.DB.WithContext(ctx).Model(&models.Campaign{}).Count(&totalItems)
+	// calculate offset
+	offset := (page - 1) * perPage
+	err := repo.DB.WithContext(ctx).Preload("CampaignImages", "campaign_images.is_primary = true").Limit(perPage).Offset(offset).Find(&campaigns).Error
+
+	if err != nil {
+		return campaigns, int(totalItems), err
+	}
+
+	return campaigns, int(totalItems), nil
+}
+
 func (repo *CampaignRepo) FindAll() ([]models.Campaign, error) {
 	var campaigns []models.Campaign
 
@@ -40,6 +61,24 @@ func (repo *CampaignRepo) FindAll() ([]models.Campaign, error) {
 	}
 
 	return campaigns, nil
+}
+
+func (repo *CampaignRepo) FindByUserIDWithCount(UserID, page, perPage int) ([]models.Campaign, int, error) {
+	var campaigns []models.Campaign
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var totalItems int64
+	repo.DB.WithContext(ctx).Model(&models.Campaign{}).Count(&totalItems)
+
+	offset := (page - 1) * perPage
+	err := repo.DB.WithContext(ctx).Where("user_id = ?", UserID).Preload("CampaignImages", "campaign_images.is_primary = true").Limit(perPage).Offset(offset).Find(&campaigns).Error
+	if err != nil {
+		return campaigns, int(totalItems), err
+	}
+
+	return campaigns, int(totalItems), nil
 }
 
 func (repo *CampaignRepo) FindByUserID(UserID int) ([]models.Campaign, error) {

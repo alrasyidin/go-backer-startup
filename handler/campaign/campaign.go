@@ -3,8 +3,8 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
+	"github.com/alrasyidin/bwa-backer-startup/pkg/common"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
 	"github.com/alrasyidin/bwa-backer-startup/pkg/helper"
 	"github.com/alrasyidin/bwa-backer-startup/service"
@@ -26,15 +26,24 @@ func NewCampaignHandler(service service.ICampaignService) *CampaignHandler {
 }
 
 func (handler *CampaignHandler) GetCampaigns(c *gin.Context) {
-	userID, _ := strconv.Atoi(c.Query("user_id"))
-	campaigns, err := handler.service.GetCampaigns(userID)
+	var input dto.GetCampaignsRequest
 
+	err := c.ShouldBind(&input)
 	if err != nil {
-		helper.BadRequestResponse(c, "Error get campaigns data", nil, err.Error())
+		helper.BadRequestResponse(c, "failed to get campaigns data", nil, err.Error())
 		return
 	}
 
-	helper.SuccessResponse(c, "List of Campaigns", dto.FormatListCampaignResponse(campaigns))
+	input.PaginationRequest = common.NewPaginationRequet(input.Page, input.PerPage)
+
+	campaigns, pagination, err := handler.service.GetCampaigns(input)
+
+	if err != nil {
+		helper.BadRequestResponse(c, "failed to get campaigns data", nil, err.Error())
+		return
+	}
+
+	helper.SuccessResponseWithPagination(c, "List of Campaigns", dto.FormatListCampaignResponse(campaigns), pagination)
 }
 
 func (handler *CampaignHandler) GetCampaign(c *gin.Context) {
