@@ -5,12 +5,14 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/handler/transaction/dto"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
 	"github.com/alrasyidin/bwa-backer-startup/repository"
+	"gorm.io/gorm"
 )
 
 type ITransactionService interface {
 	GetCampaignTransactions(input dto.GetTransactionCampaignRequest) ([]models.Transaction, error)
 	GetUserTransactions(userID int) ([]models.Transaction, error)
 	CreateTransaction(input dto.CreateTransactionRequest) (models.Transaction, error)
+	WithTrx(*gorm.DB) *TransactionService
 }
 
 type TransactionService struct {
@@ -25,6 +27,11 @@ func NewTransactionService(repo repository.ITransactionRepo, campaignRepo reposi
 		campaignRepo,
 		paymentService,
 	}
+}
+
+func (service *TransactionService) WithTrx(trx *gorm.DB) *TransactionService {
+	service.repo = service.repo.WithTrx(trx)
+	return service
 }
 
 func (service *TransactionService) GetCampaignTransactions(input dto.GetTransactionCampaignRequest) ([]models.Transaction, error) {

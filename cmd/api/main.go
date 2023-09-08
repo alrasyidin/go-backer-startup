@@ -1,10 +1,10 @@
 package main
 
 import (
-	defaultLog "log"
 	"os"
 	"time"
 
+	"github.com/alrasyidin/bwa-backer-startup/db"
 	campaignHandle "github.com/alrasyidin/bwa-backer-startup/handler/campaign"
 	transactionHandle "github.com/alrasyidin/bwa-backer-startup/handler/transaction"
 	userHandle "github.com/alrasyidin/bwa-backer-startup/handler/user"
@@ -17,17 +17,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/midtrans/midtrans-go"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	customlog "github.com/rs/zerolog/log"
 )
 
 func main() {
 	ginMode := os.Getenv("GIN_MODE")
 
 	if ginMode != gin.ReleaseMode {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		customlog.Logger = customlog.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 	app := gin.Default()
 
@@ -36,52 +33,26 @@ func main() {
 	app.Use(cors.Default())
 	app.Use(gin.Recovery())
 
-	dsn := "host=localhost user=root password=postgres dbname=bwabackerdb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
-	dbLogger := logger.New(
-		defaultLog.New(os.Stdout, "\r\n", defaultLog.LstdFlags),
-		logger.Config{
-			SlowThreshold:             time.Second, // Slow SQL threshold
-			LogLevel:                  logger.Info, // Log level
-			IgnoreRecordNotFoundError: false,       // Ignore ErrRecordNotFound error for logger
-			ParameterizedQueries:      false,       // Don't include params in the SQL log
-			Colorful:                  true,        // Disable color
-		},
-	)
-
-	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  dsn,
-		PreferSimpleProtocol: true,
-	}), &gorm.Config{
-		Logger: dbLogger,
-	})
-
+	dbConn := db.ConnDB()
+	sqlDB, err := dbConn.DB()
 	if err != nil {
-		log.Fatal().Msgf("failed connect to db: %v", err)
-	}
-
-	// db = db.Set("gorm:auto_preload", false)
-
-	log.Info().Msg("connected to db")
-	sqlDB, err := db.DB()
-	if err != nil {
-		log.Fatal().Msgf("failed get connection db instance: %v", err)
+		customlog.Fatal().Msgf("failed get connection db instance: %v", err)
 	}
 	defer sqlDB.Close()
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(50)
 	sqlDB.SetConnMaxLifetime(time.Hour)
-
 	tokenGenerator := tokenization.NewJWTGenerator("initokeninitokeninitokeninitoken")
 
-	userRepo := repository.NewUserRepo(db)
+	userRepo := repository.NewUserRepo(dbConn)
 	userService := service.NewUserService(userRepo)
 	userHandler := userHandle.NewUserHandler(userService, tokenGenerator)
 
-	campaignRepo := repository.NewCampaignRepo(db)
+	campaignRepo := repository.NewCampaignRepo(dbConn)
 	campaignService := service.NewCampaignService(campaignRepo)
 	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
-	transactionRepo := repository.NewTransactionRepo(db)
+	transactionRepo := repository.NewTransactionRepo(dbConn)
 	paymentService := service.NewPayment(&service.PaymentConfig{
 		ServerKey: "SB-Mid-server-thLn0-Fjl5Nu9-eEEbfM_56n",
 		EnvType:   midtrans.Sandbox,
@@ -102,7 +73,7 @@ func main() {
 	freeRouter.GET("/campaigns", campaignHandler.GetCampaigns)
 	freeRouter.GET("/campaigns/:id", campaignHandler.GetCampaign)
 
-	freeRouter.POST("/transactions/notification", transactionHandler.ProcessPaymentNotification)
+	freeRouter.POST("/transactions/notification", middleware.BeginDBTransaction(dbConn), transactionHandler.ProcessPaymentNotification)
 
 	requiredRouter := v1.Use(middleware.AuthMiddlware(userService, tokenGenerator))
 
@@ -118,7 +89,7 @@ func main() {
 	requiredRouter.POST("/transactions", transactionHandler.CreateTransaction)
 
 	const PORT = ":8000"
-	log.Info().Msg("API has started at " + PORT)
+	customlog.Info().Msg("API has started at " + PORT)
 
 	app.Run(PORT)
 }

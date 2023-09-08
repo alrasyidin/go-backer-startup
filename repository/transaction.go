@@ -7,6 +7,7 @@ import (
 
 	"github.com/alrasyidin/bwa-backer-startup/db/models"
 	customerror "github.com/alrasyidin/bwa-backer-startup/pkg/error"
+	customlog "github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,7 @@ type ITransactionRepo interface {
 	FindByID(ID int) (models.Transaction, error)
 	Save(transaction models.Transaction) (models.Transaction, error)
 	Update(transaction models.Transaction) (models.Transaction, error)
+	WithTrx(*gorm.DB) *TransactionRepo
 }
 
 type TransactionRepo struct {
@@ -25,6 +27,15 @@ type TransactionRepo struct {
 // Constructor for TransactionRepo
 func NewTransactionRepo(db *gorm.DB) *TransactionRepo {
 	return &TransactionRepo{DB: db}
+}
+
+func (repo *TransactionRepo) WithTrx(tx *gorm.DB) *TransactionRepo {
+	if tx == nil {
+		customlog.Info().Msg("Transaction Database not found")
+		return repo
+	}
+	repo.DB = tx
+	return repo
 }
 
 func (repo *TransactionRepo) FindByCampaignID(ID int) ([]models.Transaction, error) {

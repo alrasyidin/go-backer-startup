@@ -8,6 +8,7 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
 
 	"github.com/alrasyidin/bwa-backer-startup/handler/transaction/dto"
 )
@@ -91,7 +92,9 @@ func (handler *TransactionHandler) ProcessPaymentNotification(c *gin.Context) {
 		return
 	}
 
-	err = handler.paymentService.ProcessPayment(input)
+	tx := c.MustGet("db_trx").(*gorm.DB)
+
+	err = handler.paymentService.WithTrx(tx).ProcessPayment(input)
 	if err != nil {
 		helper.BadRequestResponse(c, "failed to process payment notification", nil, err)
 		return

@@ -9,11 +9,13 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
+	"gorm.io/gorm"
 )
 
 type IPaymentService interface {
 	GetPaymentURL(transaction models.Transaction, user models.User) (string, error)
 	ProcessPayment(input dto.TransactionNotificationRequest) error
+	WithTrx(tx *gorm.DB) *PaymentService
 }
 
 type PaymentConfig struct {
@@ -29,6 +31,11 @@ type PaymentService struct {
 
 func NewPayment(Config *PaymentConfig, TransactionRepo repository.ITransactionRepo, CampaignRepo repository.ICampaignRepo) IPaymentService {
 	return &PaymentService{Config, TransactionRepo, CampaignRepo}
+}
+
+func (service *PaymentService) WithTrx(trx *gorm.DB) *PaymentService {
+	service.TransactionRepo = service.TransactionRepo.WithTrx(trx)
+	return service
 }
 
 func (service *PaymentService) GetPaymentURL(transaction models.Transaction, user models.User) (string, error) {
@@ -60,6 +67,7 @@ func (service *PaymentService) ProcessPayment(input dto.TransactionNotificationR
 		return err
 	}
 
+	// transaction, err := service.TransactionRepo.FindByID(transactionID)
 	transaction, err := service.TransactionRepo.FindByID(transactionID)
 	if err != nil {
 		return err
