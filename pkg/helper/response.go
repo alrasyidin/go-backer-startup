@@ -3,9 +3,10 @@ package helper
 import (
 	"net/http"
 
-	"github.com/alrasyidin/bwa-backer-startup/pkg/common"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+
+	"github.com/alrasyidin/bwa-backer-startup/pkg/common"
 )
 
 type Meta struct {
@@ -14,6 +15,7 @@ type Meta struct {
 	Message string `json:"message"`
 }
 
+// Response model info
 type Response struct {
 	Meta       Meta               `json:"meta"`
 	Pagination *common.Pagination `json:"pagination,omitempty"`

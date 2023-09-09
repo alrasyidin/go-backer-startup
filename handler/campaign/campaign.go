@@ -18,13 +18,20 @@ type CampaignHandler struct {
 	service service.ICampaignService
 }
 
-// Constructor for CampaignHandler
 func NewCampaignHandler(service service.ICampaignService) *CampaignHandler {
 	return &CampaignHandler{
 		service,
 	}
 }
 
+// GetCampaigns 	godoc
+// @Summary      Get List of Campaigns
+// @Description  Get List of Campaigns
+// @Tags         campaign
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  helper.Response
+// @Router       /campaigns [get]
 func (handler *CampaignHandler) GetCampaigns(c *gin.Context) {
 	var input dto.GetCampaignsRequest
 

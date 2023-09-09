@@ -5,14 +5,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/alrasyidin/bwa-backer-startup/config"
 	customlog "github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func ConnDB() *gorm.DB {
-	dsn := "host=localhost user=root password=postgres dbname=bwabackerdb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+func ConnDB(config *config.Config) *gorm.DB {
+	// dsn := "host=localhost user=root password=postgres dbname=bwabackerdb port=5432 sslmode=disable TimeZone=Asia/Jakarta"
 	dbLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
 		logger.Config{
@@ -25,7 +26,7 @@ func ConnDB() *gorm.DB {
 	)
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
-		DSN:                  dsn,
+		DSN:                  config.DBSource,
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{
 		Logger: dbLogger,

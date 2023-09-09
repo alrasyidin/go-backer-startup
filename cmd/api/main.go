@@ -4,7 +4,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/alrasyidin/bwa-backer-startup/config"
 	"github.com/alrasyidin/bwa-backer-startup/db"
+	_ "github.com/alrasyidin/bwa-backer-startup/docs"
 	campaignHandle "github.com/alrasyidin/bwa-backer-startup/handler/campaign"
 	transactionHandle "github.com/alrasyidin/bwa-backer-startup/handler/transaction"
 	userHandle "github.com/alrasyidin/bwa-backer-startup/handler/user"
@@ -13,18 +15,45 @@ import (
 	"github.com/alrasyidin/bwa-backer-startup/repository"
 	"github.com/alrasyidin/bwa-backer-startup/service"
 	"github.com/gin-contrib/cors"
-
 	"github.com/gin-gonic/gin"
 	"github.com/midtrans/midtrans-go"
 	"github.com/rs/zerolog"
 	customlog "github.com/rs/zerolog/log"
+	swaggerFiles "github.com/swaggo/files"     // swagger embed files
+	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
 
+// @title           BWA Backer Startup
+// @version         2.0
+// @description     This is a bwa backer api
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8000
+// @BasePath  /api/v1
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+
+// @externalDocs.description  OpenAPI
+// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	ginMode := os.Getenv("GIN_MODE")
 
 	if ginMode != gin.ReleaseMode {
 		customlog.Logger = customlog.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	config, err := config.LoadConfig(".")
+	if err != nil {
+		customlog.Fatal().Msgf("failed map config, please provide env with right value: %v", err)
 	}
 	app := gin.Default()
 
@@ -33,7 +62,7 @@ func main() {
 	app.Use(cors.Default())
 	app.Use(gin.Recovery())
 
-	dbConn := db.ConnDB()
+	dbConn := db.ConnDB(config)
 	sqlDB, err := dbConn.DB()
 	if err != nil {
 		customlog.Fatal().Msgf("failed get connection db instance: %v", err)
@@ -46,16 +75,22 @@ func main() {
 
 	userRepo := repository.NewUserRepo(dbConn)
 	userService := service.NewUserService(userRepo)
-	userHandler := userHandle.NewUserHandler(userService, tokenGenerator)
+	userHandler := userHandle.NewUserHandler(userService, tokenGenerator, config)
 
 	campaignRepo := repository.NewCampaignRepo(dbConn)
 	campaignService := service.NewCampaignService(campaignRepo)
 	campaignHandler := campaignHandle.NewCampaignHandler(campaignService)
 
 	transactionRepo := repository.NewTransactionRepo(dbConn)
+	var midtransEnvTYpe midtrans.EnvironmentType
+	if config.Environtment == "PRODUCTION" {
+		midtransEnvTYpe = midtrans.Production
+	} else {
+		midtransEnvTYpe = midtrans.Sandbox
+	}
 	paymentService := service.NewPayment(&service.PaymentConfig{
-		ServerKey: "SB-Mid-server-thLn0-Fjl5Nu9-eEEbfM_56n",
-		EnvType:   midtrans.Sandbox,
+		ServerKey: config.MidtransServerKey,
+		EnvType:   midtransEnvTYpe,
 	}, transactionRepo, campaignRepo)
 	transactionService := service.NewTransactionService(transactionRepo, campaignRepo, paymentService)
 	transactionHandler := transactionHandle.NewTransactionHandler(transactionService, paymentService)
@@ -64,6 +99,8 @@ func main() {
 	app.Static("/images", "./images")
 
 	v1 := app.Group("/api/v1")
+
+	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	freeRouter := v1
 	freeRouter.POST("/users/register", userHandler.Register)
