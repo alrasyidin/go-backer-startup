@@ -27,10 +27,13 @@ func NewCampaignHandler(service service.ICampaignService) *CampaignHandler {
 // GetCampaigns 	godoc
 // @Summary      Get List of Campaigns
 // @Description  Get List of Campaigns
-// @Tags         campaign
+// @Tags         Campaign
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
 // @Router       /campaigns [get]
 func (handler *CampaignHandler) GetCampaigns(c *gin.Context) {
 	var input dto.GetCampaignsRequest
@@ -53,6 +56,18 @@ func (handler *CampaignHandler) GetCampaigns(c *gin.Context) {
 	helper.SuccessResponseWithPagination(c, "List of Campaigns", dto.FormatListCampaignResponse(campaigns), pagination)
 }
 
+// GetCampaign 	godoc
+// @Summary      Get Campaign
+// @Description  Get Detail of Campaign
+// @Tags         Campaign
+// @Param        id   path      int  true  "Campaign ID"
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
+// @Router       /campaigns/{id} [get]
 func (handler *CampaignHandler) GetCampaign(c *gin.Context) {
 	var input dto.GetCampaignDetailRequest
 
@@ -72,6 +87,19 @@ func (handler *CampaignHandler) GetCampaign(c *gin.Context) {
 	helper.SuccessResponse(c, "Campaign detail", dto.FormatCampaignDetailResponse(campaign))
 }
 
+// CreateCampaign 	godoc
+// @Summary      Create Campaign
+// @Description  Create a Campaign
+// @Tags         Campaign
+// @Param        campaign   body     dto.CreateCampaignRequest  true  "Campaign Request Body"
+// @Accept       json
+// @Produce      json
+// @Security		 ApiKeyAuth
+// @Success      200  {object}  helper.Response
+// @Failure      400  {object}  helper.Response
+// @Failure      404  {object}  helper.Response
+// @Failure      500  {object}  helper.Response
+// @Router       /campaigns [post]
 func (handler *CampaignHandler) CreateCampaign(c *gin.Context) {
 	var input dto.CreateCampaignRequest
 
@@ -97,6 +125,20 @@ func (handler *CampaignHandler) CreateCampaign(c *gin.Context) {
 	helper.SuccessResponse(c, "success to create campaign", dto.FormatCampaignResponse(campaign))
 }
 
+// UpdateCampaign 	godoc
+// @Summary      		Update Campaign
+// @Description  		Update a Campaign
+// @Tags         		Campaign
+// @Param        		id   path      int  true  "Campaign ID"
+// @Param        		campaign   body     dto.CreateCampaignRequest  true  "Campaign Request Body"
+// @Accept       		json
+// @Produce      		json
+// @Security		 		ApiKeyAuth
+// @Success      		200  {object}  helper.Response
+// @Failure      		400  {object}  helper.Response
+// @Failure      		404  {object}  helper.Response
+// @Failure      		500  {object}  helper.Response
+// @Router       		/campaigns/{id} [put]
 func (handler *CampaignHandler) UpdateCampaign(c *gin.Context) {
 	var inputID dto.GetCampaignDetailRequest
 
@@ -130,6 +172,20 @@ func (handler *CampaignHandler) UpdateCampaign(c *gin.Context) {
 	helper.SuccessResponse(c, "success to update campaign", dto.FormatCampaignResponse(campaign))
 }
 
+// UploadImage		 	godoc
+// @Summary      		Upload Campaign Image
+// @Description  		Upload a Campaign Image
+// @Tags         		Campaign Image
+// @Param        		campaign  formData   dto.SaveCampaignImageRequest  true  "Campaign Upload Image"
+// @Param        		image     formData   file  true  "Image"
+// @Accept       		mpfd
+// @Produce      		json
+// @Security		 		ApiKeyAuth
+// @Success      		200  {object}  helper.Response
+// @Failure      		400  {object}  helper.Response
+// @Failure      		404  {object}  helper.Response
+// @Failure      		500  {object}  helper.Response
+// @Router       		/campaign-iamges [post]
 func (handler *CampaignHandler) UploadImage(c *gin.Context) {
 	var input dto.SaveCampaignImageRequest
 	data := map[string]bool{

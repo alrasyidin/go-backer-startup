@@ -43,4 +43,8 @@ db/migration/new:
 	goose -dir ./db/migrations postgres ${DB_URL} create ${name} sql 
 	goose -dir ./db/migrations postgres ${DB_URL} fix
 
-.PHONY: help confirm db/create db/drop db/psql db/migration/up db/migration/all db/migration/down db/migration/reset db/migration/new
+## docs/generate: generate swagger documentations
+docs/generate:
+	swag init -g ../../cmd/api/main.go -d handler/user,handler/transaction,handler/campaign --pd
+
+.PHONY: help confirm db/create db/drop db/psql db/migration/up db/migration/all db/migration/down db/migration/reset db/migration/new docs/generate

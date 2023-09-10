@@ -11,6 +11,58 @@ definitions:
       total_pages:
         type: integer
     type: object
+  dto.CreateCampaignRequest:
+    properties:
+      description:
+        type: string
+      goal_amount:
+        type: integer
+      name:
+        type: string
+      perks:
+        type: string
+      short_description:
+        type: string
+    required:
+    - description
+    - goal_amount
+    - name
+    - perks
+    - short_description
+    type: object
+  dto.EmailCheckRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  dto.LoginUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.RegisterUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      occupation:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - occupation
+    - password
+    type: object
   helper.Meta:
     properties:
       code:
@@ -46,6 +98,49 @@ info:
   title: BWA Backer Startup
   version: "2.0"
 paths:
+  /campaign-iamges:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a Campaign Image
+      parameters:
+      - in: formData
+        name: campaign_id
+        required: true
+        type: integer
+      - in: formData
+        name: is_primary
+        required: true
+        type: boolean
+      - description: Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Upload Campaign Image
+      tags:
+      - Campaign Image
   /campaigns:
     get:
       consumes:
@@ -58,9 +153,408 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
       summary: Get List of Campaigns
       tags:
-      - campaign
+      - Campaign
+    post:
+      consumes:
+      - application/json
+      description: Create a Campaign
+      parameters:
+      - description: Campaign Request Body
+        in: body
+        name: campaign
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create Campaign
+      tags:
+      - Campaign
+  /campaigns/:id/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Get campaign transaction
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get campaign transaction
+      tags:
+      - Transaction
+  /campaigns/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Detail of Campaign
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Get Campaign
+      tags:
+      - Campaign
+    put:
+      consumes:
+      - application/json
+      description: Update a Campaign
+      parameters:
+      - description: Campaign ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Campaign Request Body
+        in: body
+        name: campaign
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Campaign
+      tags:
+      - Campaign
+  /transactions/:
+    get:
+      consumes:
+      - application/json
+      description: Get user transaction
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user transaction
+      tags:
+      - Transaction
+    post:
+      consumes:
+      - application/json
+      description: Create a transaction
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create transaction
+      tags:
+      - Transaction
+  /transactions/notification:
+    post:
+      consumes:
+      - application/json
+      description: Process payment notification transaction
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Process payment notification transaction
+      tags:
+      - Transaction
+  /users/avatar:
+    post:
+      consumes:
+      - application/json
+      description: Upload avatar
+      parameters:
+      - description: avatar file image
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Upload avatar
+      tags:
+      - Authentication
+  /users/email-check:
+    post:
+      consumes:
+      - application/json
+      description: Check email a new user
+      parameters:
+      - description: Check email Request Body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EmailCheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Check email
+      tags:
+      - Authentication
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Current user
+      tags:
+      - Authentication
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: Register Request Body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Register
+      tags:
+      - Authentication
+  /users/session:
+    post:
+      consumes:
+      - application/json
+      description: Login a user
+      parameters:
+      - description: Login Request Body
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/helper.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.Response'
+      summary: Login
+      tags:
+      - Authentication
 securityDefinitions:
   ApiKeyAuth:
     in: header

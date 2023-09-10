@@ -22,6 +22,18 @@ func NewTransactionHandler(service service.ITransactionService, paymentService s
 	return &TransactionHandler{service, paymentService}
 }
 
+// GetCampaignTransaction			godoc
+// @Summary      							Get campaign transaction
+// @Description  							Get campaign transaction
+// @Tags         							Transaction
+// @Accept       							json
+// @Produce      							json
+// @Security      						ApiKeyAuth
+// @Success      							200  {object}  helper.Response
+// @Failure      							400  {object}  helper.Response
+// @Failure      							404  {object}  helper.Response
+// @Failure      							500  {object}  helper.Response
+// @Router       							/campaigns/:id/transactions [get]
 func (handler *TransactionHandler) GetCampaignTransactions(c *gin.Context) {
 	var input dto.GetTransactionCampaignRequest
 
@@ -42,6 +54,18 @@ func (handler *TransactionHandler) GetCampaignTransactions(c *gin.Context) {
 	helper.SuccessResponse(c, "Success get transaction campaign's", dto.FormatListTransactionCampaignResponse(transactions))
 }
 
+// GetUserTransaction		 godoc
+// @Summary      				 Get user transaction
+// @Description  				 Get user transaction
+// @Tags         				 Transaction
+// @Accept       				 json
+// @Produce      				 json
+// @Security      			 ApiKeyAuth
+// @Success      				 200  {object}  helper.Response
+// @Failure      				 400  {object}  helper.Response
+// @Failure      				 404  {object}  helper.Response
+// @Failure      				 500  {object}  helper.Response
+// @Router       				 /transactions/ [get]
 func (handler *TransactionHandler) GetUserTransactions(c *gin.Context) {
 	currentUser := helper.GetCurrentUser(c, customerror.ErrNotOwnedCampaign.Error())
 
@@ -54,6 +78,18 @@ func (handler *TransactionHandler) GetUserTransactions(c *gin.Context) {
 	helper.SuccessResponse(c, "Success get transaction user's", dto.FormatListTransactionUserResponse(transactions))
 }
 
+// CreateTransaction		 godoc
+// @Summary      				 Create transaction
+// @Description  				 Create a transaction
+// @Tags         				 Transaction
+// @Accept       				 json
+// @Produce      				 json
+// @Security      			 ApiKeyAuth
+// @Success      				 200  {object}  helper.Response
+// @Failure      				 400  {object}  helper.Response
+// @Failure      				 404  {object}  helper.Response
+// @Failure      				 500  {object}  helper.Response
+// @Router       				 /transactions/ [post]
 func (handler *TransactionHandler) CreateTransaction(c *gin.Context) {
 	var input dto.CreateTransactionRequest
 
@@ -78,6 +114,17 @@ func (handler *TransactionHandler) CreateTransaction(c *gin.Context) {
 	helper.SuccessResponse(c, "Success to create transaction", dto.FormatTransactionResponse(transaction))
 }
 
+// ProcessTransaction		 godoc
+// @Summary      				 Process payment notification transaction
+// @Description  				 Process payment notification transaction
+// @Tags         				 Transaction
+// @Accept       				 json
+// @Produce      				 json
+// @Success      				 200  {object}  helper.Response
+// @Failure      				 400  {object}  helper.Response
+// @Failure      				 404  {object}  helper.Response
+// @Failure      				 500  {object}  helper.Response
+// @Router       				 /transactions/notification [post]
 func (handler *TransactionHandler) ProcessPaymentNotification(c *gin.Context) {
 	var input dto.TransactionNotificationRequest
 
