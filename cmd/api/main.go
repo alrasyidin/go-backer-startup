@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/alrasyidin/bwa-backer-startup/config"
@@ -22,6 +27,16 @@ import (
 	swaggerFiles "github.com/swaggo/files"     // swagger embed files
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 )
+
+func signalExit(log zerolog.Logger) {
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	s := <-quit
+	log.Info().Msgf("caught signal: %v", map[string]string{"signal": s.String()})
+	os.Exit(0)
+}
 
 // @title           BWA Backer Startup
 // @version         2.0
@@ -128,5 +143,37 @@ func main() {
 	const PORT = ":8000"
 	customlog.Info().Msg("API has started at " + PORT)
 
-	app.Run(PORT)
+	srv := &http.Server{
+		Addr:    PORT,
+		Handler: app,
+	}
+
+	shutdownError := make(chan error)
+	go func() {
+		quit := make(chan os.Signal, 1)
+
+		signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+		s := <-quit
+		customlog.Info().Msgf("caught signal: %v", s.String())
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		shutdownError <- srv.Shutdown(ctx)
+	}()
+
+	err = srv.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		customlog.Fatal().Msgf("listen: %s\n", err)
+	}
+	err = <-shutdownError
+
+	if err != nil {
+		customlog.Fatal().Msgf("listen: %s\n", err)
+	}
+
+	customlog.Info().Msgf("stopped server: http://localhost:%v", PORT)
+
+	// app.Run(PORT)
 }

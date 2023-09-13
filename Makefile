@@ -43,6 +43,10 @@ db/migration/new:
 	goose -dir ./db/migrations postgres ${DB_URL} create ${name} sql 
 	goose -dir ./db/migrations postgres ${DB_URL} fix
 
+## run: running application
+run:
+	air -d -c .air.toml
+
 ## docs/generate: generate swagger documentations
 docs/generate:
 	swag init -g ../../cmd/api/main.go -d handler/user,handler/transaction,handler/campaign --pd
